@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Load Telugu/Devanagari only when needed */
+.lang-te {
+  font-family: 'Noto Sans Telugu', 'Inter', sans-serif;
+}
+
+.lang-hi {
+  font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Telugu needs extra line height for readability */
+  .lang-te p,
+  .lang-te li,
+  .lang-te span,
+  .lang-te td,
+  .lang-te th,
+  .lang-te label,
+  .lang-te button {
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+}

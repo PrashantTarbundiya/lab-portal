@@ -1,0 +1,418 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Staff & Doctor users ───
+model User {
+  id           String   @id @default(cuid())
+  supabaseId   String?  @unique @map("supabase_id")
+  email        String   @unique
+  name         String
+  role         UserRole
+  doctorId     String?  @map("doctor_id")
+  doctor       Doctor?  @relation(fields: [doctorId], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  importRuns   ImportRun[]
+  tasksDone    CallbackTask[] @relation("TaskDoneBy")
+
+  @@map("users")
+}
+
+enum UserRole {
+  FRONT_DESK
+  DOCTOR
+}
+
+// ─── Patient account (one mobile = one account, may have family) ───
+model Account {
+  id             String    @id @default(cuid())
+  supabaseId     String?   @unique @map("supabase_id")
+  mobileE164     String    @unique @map("mobile_e164")
+  mobileHash     String    @map("mobile_hash")
+  preferredLang  Lang      @default(en) @map("preferred_lang")
+  consentVersion String?   @map("consent_version")
+  consentAt      DateTime? @map("consent_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  patients       Patient[]
+  linkTokens     LinkToken[]
+  messages       Message[]
+  callbackTasks  CallbackTask[]
+
+  @@index([mobileHash])
+  @@map("accounts")
+}
+
+enum Lang {
+  en
+  te
+  hi
+}
+
+// ─── Individual patient within an account ───
+model Patient {
+  id        String       @id @default(cuid())
+  accountId String       @map("account_id")
+  account   Account      @relation(fields: [accountId], references: [id])
+  fullName  String       @map("full_name")
+  sex       String
+  dob       DateTime?
+  relation  Relation     @default(SELF)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  orders       Order[]
+  summaryFlags SummaryFlag[]
+
+  @@index([accountId])
+  @@map("patients")
+}
+
+enum Relation {
+  SELF
+  SPOUSE
+  CHILD
+  PARENT
+  OTHER
+}
+
+// ─── Referring doctor ───
+model Doctor {
+  id     String  @id @default(cuid())
+  name   String
+
+  orders Order[]
+  users  User[]
+
+  @@map("doctors")
+}
+
+// ─── Lab order ───
+model Order {
+  id          String      @id @default(cuid())
+  orderNo     String      @unique @map("order_no")
+  patientId   String      @map("patient_id")
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  doctorId    String?     @map("doctor_id")
+  doctor      Doctor?     @relation(fields: [doctorId], references: [id])
+  status      OrderStatus @default(PROCESSING)
+  hasCritical Boolean     @default(false) @map("has_critical")
+  signedAt    DateTime?   @map("signed_at")
+  pdf         Bytes?
+  pdfFileName String?     @map("pdf_file_name")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  results       Result[]
+  summaries     Summary[]
+  linkTokens    LinkToken[]
+  messages      Message[]
+  callbackTasks CallbackTask[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PROCESSING
+  SIGNED
+}
+
+// ─── Test result (one row per parameter) ───
+model Result {
+  id          String     @id @default(cuid())
+  orderId     String     @map("order_id")
+  order       Order      @relation(fields: [orderId], references: [id])
+  parameter   String
+  unit        String?
+  value       String
+  valueNum    Decimal?   @map("value_num")
+  refRangeRaw String?    @map("ref_range_raw")
+  refLow      Decimal?   @map("ref_low")
+  refHigh     Decimal?   @map("ref_high")
+  refOp       RefOp?     @map("ref_op")
+  flag        ResultFlag @default(NORMAL)
+
+  @@unique([orderId, parameter])
+  @@index([orderId])
+  @@map("results")
+}
+
+enum RefOp {
+  RANGE
+  LT
+  GT
+  LTE
+  GTE
+}
+
+enum ResultFlag {
+  NORMAL
+  LOW
+  HIGH
+  CRITICAL_LOW
+  CRITICAL_HIGH
+  UNKNOWN
+}
+
+// ─── Critical value rules ───
+model CriticalRule {
+  id           String   @id @default(cuid())
+  parameter    String   @unique
+  criticalLow  Decimal? @map("critical_low")
+  criticalHigh Decimal? @map("critical_high")
+
+  @@map("critical_rules")
+}
+
+// ─── Summary templates (locked text for common tests) ───
+model SummaryTemplate {
+  id        String  @id @default(cuid())
+  testKey   String  @map("test_key")
+  direction String  // LOW or HIGH
+  lang      Lang
+  text      String
+  reviewed  Boolean @default(false)
+
+  @@unique([testKey, direction, lang])
+  @@map("summary_templates")
+}
+
+// ─── Generated summary for an order ───
+model Summary {
+  id           String       @id @default(cuid())
+  orderId      String       @map("order_id")
+  order        Order        @relation(fields: [orderId], references: [id])
+  lang         Lang
+  source       SummarySource
+  body         String
+  model        String?
+  reviewStatus ReviewStatus @default(UNREVIEWED) @map("review_status")
+  generatedAt  DateTime     @default(now()) @map("generated_at")
+
+  // Relations
+  flags SummaryFlag[]
+
+  @@unique([orderId, lang])
+  @@index([orderId])
+  @@map("summaries")
+}
+
+enum SummarySource {
+  TEMPLATE
+  AI
+  FALLBACK
+}
+
+enum ReviewStatus {
+  UNREVIEWED
+  APPROVED
+  CHANGED
+}
+
+// ─── Patient-flagged summary ───
+model SummaryFlag {
+  id        String          @id @default(cuid())
+  summaryId String          @map("summary_id")
+  summary   Summary         @relation(fields: [summaryId], references: [id])
+  patientId String          @map("patient_id")
+  patient   Patient         @relation(fields: [patientId], references: [id])
+  reason    FlagReason
+  freeText  String?         @map("free_text") @db.VarChar(300)
+  status    FlagStatus      @default(OPEN)
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@index([summaryId])
+  @@map("summary_flags")
+}
+
+enum FlagReason {
+  CONFUSING
+  SEEMS_WRONG
+  WRONG_LANGUAGE
+  OTHER
+}
+
+enum FlagStatus {
+  OPEN
+  REVIEWED
+}
+
+// ─── Secure link tokens ───
+model LinkToken {
+  id           String    @id @default(cuid())
+  orderId      String    @map("order_id")
+  order        Order     @relation(fields: [orderId], references: [id])
+  accountId    String    @map("account_id")
+  account      Account   @relation(fields: [accountId], references: [id])
+  tokenHash    String    @unique @map("token_hash")
+  expiresAt    DateTime  @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  revokedAt    DateTime? @map("revoked_at")
+  firstOpenedAt DateTime? @map("first_opened_at")
+  openCount    Int       @default(0) @map("open_count")
+
+  @@index([orderId])
+  @@index([accountId])
+  @@map("link_tokens")
+}
+
+// ─── Mock message outbox ───
+model Message {
+  id            String        @id @default(cuid())
+  orderId       String        @map("order_id")
+  order         Order         @relation(fields: [orderId], references: [id])
+  accountId     String        @map("account_id")
+  account       Account       @relation(fields: [accountId], references: [id])
+  channel       Channel
+  kind          MessageKind
+  body          String
+  status        MessageStatus @default(QUEUED)
+  failureReason String?       @map("failure_reason")
+  deliverAt     DateTime?     @map("deliver_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@index([accountId])
+  @@map("messages")
+}
+
+enum Channel {
+  WHATSAPP
+  SMS
+}
+
+enum MessageKind {
+  REPORT_LINK
+  RESEND
+  OTP
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  OPENED
+}
+
+// ─── Callback tasks for staff ───
+model CallbackTask {
+  id        String       @id @default(cuid())
+  orderId   String?      @map("order_id")
+  order     Order?       @relation(fields: [orderId], references: [id])
+  accountId String?      @map("account_id")
+  account   Account?     @relation(fields: [accountId], references: [id])
+  type      TaskType
+  parameter String?
+  value     String?
+  reason    String
+  status    TaskStatus   @default(OPEN)
+  doneById  String?      @map("done_by_id")
+  doneBy    User?        @relation("TaskDoneBy", fields: [doneById], references: [id])
+  doneAt    DateTime?    @map("done_at")
+  note      String?
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@index([status])
+  @@map("callback_tasks")
+}
+
+enum TaskType {
+  CRITICAL_CALLBACK
+  WRONG_NUMBER
+  MOBILE_CHANGE
+  CONSENT_WITHDRAWAL
+}
+
+enum TaskStatus {
+  OPEN
+  DONE
+}
+
+// ─── Append-only access log ───
+model AccessLog {
+  id             String       @id @default(cuid())
+  at             DateTime     @default(now())
+  actorType      ActorType    @map("actor_type")
+  actorId        String?      @map("actor_id")
+  accountId      String?      @map("account_id")
+  orderId        String?      @map("order_id")
+  action         LogAction
+  ipHash         String?      @map("ip_hash")
+  userAgentShort String?      @map("user_agent_short")
+  outcome        LogOutcome   @default(OK)
+  detail         String?
+
+  @@index([action])
+  @@index([at])
+  @@index([accountId])
+  @@index([orderId])
+  @@map("access_logs")
+}
+
+enum ActorType {
+  PATIENT
+  STAFF
+  DOCTOR
+  SYSTEM
+  ANON
+}
+
+enum LogAction {
+  LOGIN
+  OTP_SEND
+  OTP_VERIFY
+  OTP_FAIL
+  LINK_OPEN
+  REPORT_VIEW
+  PDF_DOWNLOAD
+  RESEND_LINK
+  PHONE_REVEAL
+  TASK_DONE
+  WRONG_NUMBER
+  CONSENT_WITHDRAW
+  IMPORT
+  SUMMARY_FLAG
+  LOGOUT
+}
+
+enum LogOutcome {
+  OK
+  DENIED
+  EXPIRED
+  OTP_FAIL
+  RATE_LIMITED
+}
+
+// ─── Import run tracking ───
+model ImportRun {
+  id             String   @id @default(cuid())
+  fileName       String   @map("file_name")
+  uploadedById   String   @map("uploaded_by_id")
+  uploadedBy     User     @relation(fields: [uploadedById], references: [id])
+  rowsTotal      Int      @default(0) @map("rows_total")
+  rowsOk         Int      @default(0) @map("rows_ok")
+  rowsFailed     Int      @default(0) @map("rows_failed")
+  ordersCreated  Int      @default(0) @map("orders_created")
+  ordersSigned   Int      @default(0) @map("orders_signed")
+  errorsJson     String?  @map("errors_json") @db.Text
+  startedAt      DateTime @default(now()) @map("started_at")
+  finishedAt     DateTime? @map("finished_at")
+
+  @@map("import_runs")
+}
+

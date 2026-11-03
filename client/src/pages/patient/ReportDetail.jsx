@@ -17,6 +17,8 @@ import VoiceReadButton from '../../components/VoiceReadButton';
 import DoctorChecklistModal from '../../components/DoctorChecklistModal';
 import HealthScorecard from '../../components/HealthScorecard';
 import FloatingAICopilot from '../../components/FloatingAICopilot';
+import DigitalVerificationModal from '../../components/DigitalVerificationModal';
+import PreTestGuide from '../../components/PreTestGuide';
 
 export default function ReportDetail() {
   const { id } = useParams();
@@ -26,9 +28,11 @@ export default function ReportDetail() {
   const [downloading, setDownloading] = useState(false);
   const [showAllResults, setShowAllResults] = useState(true);
   const [viewMode, setViewMode] = useState('gauges'); // 'gauges' | 'table'
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isSideChatOpen, setIsSideChatOpen] = useState(false);
   const [sideChatQuery, setSideChatQuery] = useState('');
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   const openLabbyChat = (question = '') => {
     setSideChatQuery(question);
@@ -177,6 +181,29 @@ export default function ReportDetail() {
     (r) => r.flag && r.flag !== 'NORMAL' && r.flag !== 'UNKNOWN'
   ) || [];
 
+  // Categorize parameters for interactive biological grouping
+  const getParamCategory = (name) => {
+    const n = (name || '').toLowerCase();
+    if (n.includes('glucose') || n.includes('sugar') || n.includes('hba1c')) return { key: 'GLYCEMIC', label: 'Blood Sugar', icon: '🩸' };
+    if (n.includes('cholesterol') || n.includes('triglyceride') || n.includes('ldl') || n.includes('hdl') || n.includes('lipid')) return { key: 'LIPID', label: 'Lipid & Heart', icon: '🫀' };
+    if (n.includes('bilirubin') || n.includes('sgot') || n.includes('sgpt') || n.includes('alt') || n.includes('ast') || n.includes('alkaline')) return { key: 'LIVER', label: 'Liver Function', icon: '🧪' };
+    if (n.includes('tsh') || n.includes('t3') || n.includes('t4') || n.includes('thyroid')) return { key: 'THYROID', label: 'Thyroid', icon: '🦋' };
+    if (n.includes('vitamin') || n.includes('calcium') || n.includes('b12')) return { key: 'VITAMIN', label: 'Vitamins', icon: '☀️' };
+    if (n.includes('haemoglobin') || n.includes('wbc') || n.includes('platelet') || n.includes('rbc')) return { key: 'HEMOGRAM', label: 'CBC & Blood', icon: '🛡️' };
+    return { key: 'OTHER', label: 'General', icon: '📋' };
+  };
+
+  const availableCategories = ['ALL'];
+  (order?.results || []).forEach((r) => {
+    const cat = getParamCategory(r.parameter).key;
+    if (!availableCategories.includes(cat)) availableCategories.push(cat);
+  });
+
+  const displayedResults = (order?.results || []).filter((r) => {
+    if (selectedCategory === 'ALL') return true;
+    return getParamCategory(r.parameter).key === selectedCategory;
+  });
+
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
       <DemoRibbon />
@@ -193,7 +220,7 @@ export default function ReportDetail() {
           <>
             {/* Order & Patient Header Card */}
             <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-3">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start flex-wrap gap-2">
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                     {order.patient?.fullName}
@@ -202,9 +229,23 @@ export default function ReportDetail() {
                     Order #{order.orderNo} • {formatDate(order.date)}
                   </p>
                 </div>
-                <Badge variant={order.hasCritical ? 'danger' : 'success'}>
-                  {order.hasCritical ? 'Critical' : 'Verified'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsVerifyModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#0F5E57] border border-teal-200 text-xs font-bold transition cursor-pointer shadow-2xs"
+                    title="View NABL Digital Accreditation & QR Seal"
+                  >
+                    <span>🛡️</span>
+                    <span>NABL Verified</span>
+                    <span className="text-[10px] bg-white px-1 py-0.2 rounded border border-teal-200 font-mono">
+                      QR
+                    </span>
+                  </button>
+                  <Badge variant={order.hasCritical ? 'danger' : 'success'}>
+                    {order.hasCritical ? 'Critical' : 'Verified'}
+                  </Badge>
+                </div>
               </div>
 
               {order.doctorName && (
@@ -364,6 +405,7 @@ export default function ReportDetail() {
 
             {/* Detailed Test Results with Visual Range Gauges & Table View */}
             <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-4">
+              {/* View Switcher & Category Filter */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
                 <div>
                   <h3 className="text-base font-bold text-gray-900">
@@ -401,10 +443,35 @@ export default function ReportDetail() {
                 </div>
               </div>
 
+              {/* Organ System Category Filter Chips */}
+              {availableCategories.length > 2 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                  {availableCategories.map((catKey) => {
+                    const isSelected = selectedCategory === catKey;
+                    const catObj = catKey === 'ALL' ? { label: `All Tests (${order.results?.length || 0})`, icon: '🔬' } : getParamCategory(catKey === 'GLYCEMIC' ? 'glucose' : catKey === 'LIPID' ? 'lipid' : catKey === 'LIVER' ? 'liver' : catKey === 'THYROID' ? 'thyroid' : catKey === 'VITAMIN' ? 'vitamin' : catKey === 'HEMOGRAM' ? 'haemoglobin' : 'other');
+                    return (
+                      <button
+                        key={catKey}
+                        type="button"
+                        onClick={() => setSelectedCategory(catKey)}
+                        className={`whitespace-nowrap px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                          isSelected
+                            ? 'bg-[#0F5E57] text-white shadow-2xs'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        <span>{catObj.icon}</span>
+                        <span>{catObj.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* View 1: Visual Biological Spectrum Gauges */}
               {viewMode === 'gauges' && (
                 <div className="space-y-3 pt-1">
-                  {order.results?.map((r, idx) => (
+                  {displayedResults?.map((r, idx) => (
                     <VisualRangeGauge
                       key={idx}
                       parameter={r.parameter}
@@ -436,7 +503,7 @@ export default function ReportDetail() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 tabular-nums">
-                      {order.results?.map((r, idx) => {
+                      {displayedResults?.map((r, idx) => {
                         const isCritical = (r.flag || '').includes('CRITICAL');
                         const isAbnormal = r.flag === 'LOW' || r.flag === 'HIGH';
                         return (
@@ -512,6 +579,9 @@ export default function ReportDetail() {
                 </button>
               </div>
             </div>
+
+            {/* Creative Pre-Test Preparation & Fasting Guide Accordion */}
+            <PreTestGuide lang={lang} />
           </>
         ) : null}
       </main>
@@ -588,6 +658,18 @@ export default function ReportDetail() {
           </div>
         </form>
       </Modal>
+
+      {/* Digital Authenticity & NABL Accreditation Seal with QR Verification */}
+      {order && (
+        <DigitalVerificationModal
+          isOpen={isVerifyModalOpen}
+          onClose={() => setIsVerifyModalOpen(false)}
+          orderNo={order.orderNo}
+          patientName={order.patient?.fullName}
+          date={order.date || order.signedAt}
+          doctorName={order.doctorName}
+        />
+      )}
 
       {/* AI-Generated Doctor Discussion Checklist */}
       {order && (

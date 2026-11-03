@@ -11,6 +11,7 @@ import DemoRibbon from '../../components/DemoRibbon';
 import StaffNavbar from '../../components/StaffNavbar';
 import { SkeletonTable } from '../../components/Skeleton';
 import ErrorState from '../../components/ErrorState';
+import CreateOrderModal from '../../components/CreateOrderModal';
 
 export default function StaffConsole() {
   const [orders, setOrders] = useState([]);
@@ -21,6 +22,7 @@ export default function StaffConsole() {
   const [deliveryFilter, setDeliveryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const { token, logout, user } = useAuth();
@@ -234,18 +236,28 @@ export default function StaffConsole() {
             </p>
           </div>
 
-          <form onSubmit={handleSearchSubmit} className="flex gap-2 max-w-md w-full">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by order #, name, or last 4 digits..."
-              className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2 text-sm focus:outline-none focus:border-[#0F5E57] focus:ring-1 focus:ring-[#0F5E57]"
-            />
-            <Button type="submit" variant="primary" size="sm" className="whitespace-nowrap">
-              Search
-            </Button>
-          </form>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-[#0F5E57] hover:from-emerald-700 hover:to-[#0b4742] text-white text-xs font-bold shadow-sm transition cursor-pointer"
+            >
+              <span>➕</span>
+              <span>Create New Report</span>
+            </button>
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search order #, name..."
+                className="w-48 sm:w-60 rounded-xl border border-gray-300 px-3 py-1.5 text-xs focus:outline-none focus:border-[#0F5E57] focus:ring-1 focus:ring-[#0F5E57]"
+              />
+              <Button type="submit" variant="primary" size="sm" className="whitespace-nowrap text-xs">
+                Search
+              </Button>
+            </form>
+          </div>
         </div>
 
         {/* 3 Simple Filters per spec */}
@@ -340,6 +352,14 @@ export default function StaffConsole() {
           </div>
         )}
       </main>
+
+      {/* Manual Walk-in Order Creation Modal */}
+      <CreateOrderModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onOrderCreated={() => fetchOrders()}
+        token={token}
+      />
     </div>
   );
 }

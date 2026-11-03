@@ -5,6 +5,13 @@ import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { maskPhone, maskName } from '../lib/mask.js';
 import { writeLog } from '../lib/audit.js';
 import { getMessageStatus } from '../services/messaging.js';
+import { parseRange, computeFlag, parseNumericValue } from '../lib/ranges.js';
+import { applyCriticalRule } from '../lib/critical.js';
+import { hashMobile, normalizeMobile } from '../lib/hashMobile.js';
+import { generateToken, LINK_TTL_HOURS } from '../lib/tokens.js';
+import { messageProvider, buildReportMessage } from '../services/messaging.js';
+import { generateSummariesForOrder } from '../services/summary.js';
+import { generatePDF } from '../services/import.js';
 
 const router = Router();
 
@@ -379,6 +386,218 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
   } catch (err) {
     console.error('GET /api/orders/:id/pdf error:', err);
     return res.status(500).json({ error: 'Failed to download PDF' });
+  }
+});
+
+// POST /api/orders
+// Create a new diagnostic order (for staff walk-in entry)
+router.post('/', authenticate, async (req, res) => {
+  try {
+    const {
+      patientName,
+      mobile,
+      sex = 'F',
+      dob,
+      doctorName = 'Dr. S. Ramanaiah',
+      status = 'SIGNED',
+      results = [],
+    } = req.body;
+
+    if (!patientName || !patientName.trim()) {
+      return res.status(400).json({ error: 'Patient name is required' });
+    }
+    if (!mobile || !mobile.trim()) {
+      return res.status(400).json({ error: 'Patient mobile number is required' });
+    }
+    if (!results || results.length === 0) {
+      return res.status(400).json({ error: 'At least one test result parameter is required' });
+    }
+
+    const normMobile = normalizeMobile(mobile);
+    if (!normMobile) {
+      return res.status(400).json({ error: 'Invalid 10-digit mobile number' });
+    }
+
+    const mobileHash = hashMobile(normMobile);
+
+    // 1. Account
+    let account = await prisma.account.findFirst({
+      where: { mobileHash },
+    });
+    if (!account) {
+      account = await prisma.account.create({
+        data: {
+          mobileE164: normMobile,
+          mobileHash,
+        },
+      });
+    }
+
+    // 2. Patient
+    let patient = await prisma.patient.findFirst({
+      where: {
+        accountId: account.id,
+        fullName: patientName.trim(),
+      },
+    });
+    if (!patient) {
+      patient = await prisma.patient.create({
+        data: {
+          accountId: account.id,
+          fullName: patientName.trim(),
+          sex: sex || 'F',
+          dob: dob ? new Date(dob) : null,
+        },
+      });
+    }
+
+    // 3. Doctor
+    let doctor = null;
+    if (doctorName && doctorName.trim()) {
+      doctor = await prisma.doctor.findFirst({
+        where: { name: doctorName.trim() },
+      });
+      if (!doctor) {
+        doctor = await prisma.doctor.create({
+          data: { name: doctorName.trim() },
+        });
+      }
+    }
+
+    // 4. Generate unique Order No
+    let orderNo = `ORD-${Math.floor(70000 + Math.random() * 25000)}`;
+    let exists = await prisma.order.findUnique({ where: { orderNo } });
+    while (exists) {
+      orderNo = `ORD-${Math.floor(70000 + Math.random() * 25000)}`;
+      exists = await prisma.order.findUnique({ where: { orderNo } });
+    }
+
+    // 5. Parse critical rules and results
+    const criticalRules = await prisma.criticalRule.findMany();
+    let hasCritical = false;
+
+    const formattedResults = [];
+    for (const r of results) {
+      const parsedRange = parseRange(r.refRangeRaw || '');
+      const numVal = parseNumericValue(r.value);
+      let flag = r.flag || computeFlag(numVal, parsedRange);
+
+      const critCheck = applyCriticalRule(r.parameter, numVal, criticalRules);
+      if (critCheck.isCritical) {
+        hasCritical = true;
+        flag = critCheck.flag;
+      }
+
+      formattedResults.push({
+        parameter: r.parameter,
+        value: String(r.value),
+        valueNum: numVal !== null ? numVal : undefined,
+        unit: r.unit || '',
+        refRangeRaw: r.refRangeRaw || '',
+        refLow: parsedRange.low !== null ? parsedRange.low : undefined,
+        refHigh: parsedRange.high !== null ? parsedRange.high : undefined,
+        refOp: parsedRange.op || undefined,
+        flag: flag || 'NORMAL',
+      });
+    }
+
+    const isSigned = status === 'SIGNED';
+
+    // 6. Create Order with Results
+    const newOrder = await prisma.order.create({
+      data: {
+        orderNo,
+        patientId: patient.id,
+        doctorId: doctor?.id || null,
+        status: isSigned ? 'SIGNED' : 'PROCESSING',
+        hasCritical,
+        signedAt: isSigned ? new Date() : null,
+        pdfFileName: `${orderNo}.pdf`,
+        results: {
+          create: formattedResults,
+        },
+      },
+      include: {
+        results: true,
+        patient: { include: { account: true } },
+        doctor: true,
+      },
+    });
+
+    // 7. If SIGNED: Generate PDF, LinkToken, Summary, Messages
+    if (isSigned) {
+      try {
+        const pdfBytes = await generatePDF(newOrder, newOrder.results, patient);
+        await prisma.order.update({
+          where: { id: newOrder.id },
+          data: { pdf: Buffer.from(pdfBytes) },
+        });
+
+        const tokenObj = generateToken();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + LINK_TTL_HOURS);
+        await prisma.linkToken.create({
+          data: {
+            orderId: newOrder.id,
+            accountId: account.id,
+            tokenHash: tokenObj.hash,
+            expiresAt,
+          },
+        });
+
+        await generateSummariesForOrder(newOrder.id);
+
+        if (!hasCritical) {
+          const appUrl = process.env.APP_URL || 'http://localhost:5173';
+          const reportLink = `${appUrl}/r/${tokenObj.raw}`;
+          const messageText = buildReportMessage(
+            patient.fullName,
+            orderNo,
+            reportLink,
+            LINK_TTL_HOURS
+          );
+          await messageProvider.send(account.mobileE164, messageText, newOrder.id);
+        } else {
+          // Critical callback task
+          await prisma.callbackTask.create({
+            data: {
+              accountId: account.id,
+              orderId: newOrder.id,
+              type: 'CRITICAL_CALLBACK',
+              parameter: formattedResults.find(r => (r.flag || '').includes('CRITICAL'))?.parameter || 'Critical Test Result',
+              value: formattedResults.find(r => (r.flag || '').includes('CRITICAL'))?.value || '',
+              reason: `Critical value detected during manual order entry for ${orderNo}.`,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('Post-creation artifacts generation error:', err);
+      }
+    }
+
+    await writeLog({
+      actorType: req.actorType || 'STAFF',
+      actorId: req.dbUser?.id || req.dbAccount?.id,
+      orderId: newOrder.id,
+      action: 'IMPORT',
+      outcome: 'OK',
+      detail: `Created order ${orderNo} (${results.length} parameters, ${status})`,
+      req,
+    });
+
+    return res.status(201).json({
+      success: true,
+      order: {
+        id: newOrder.id,
+        orderNo: newOrder.orderNo,
+        status: newOrder.status,
+        patientName: patient.fullName,
+        resultsCount: formattedResults.length,
+      },
+    });
+  } catch (err) {
+    console.error('POST /api/orders error:', err);
+    return res.status(500).json({ error: err.message || 'Failed to create order' });
   }
 });
 

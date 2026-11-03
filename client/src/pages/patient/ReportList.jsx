@@ -17,12 +17,28 @@ export default function ReportList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterTab, setFilterTab] = useState('ALL');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { token, logout } = useAuth();
   const { t } = useLanguage();
 
   const patientId = searchParams.get('patientId');
+
+  const filteredOrders = orders.filter((o) => {
+    if (filterTab === 'SIGNED' && o.status !== 'SIGNED') return false;
+    if (filterTab === 'PROCESSING' && o.status !== 'PROCESSING') return false;
+    if (filterTab === 'CRITICAL' && !o.hasCritical) return false;
+
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      (o.testName || '').toLowerCase().includes(term) ||
+      (o.patientName || '').toLowerCase().includes(term) ||
+      (o.orderNo || '').toLowerCase().includes(term)
+    );
+  });
 
   const fetchOrders = async () => {
     try {
@@ -112,6 +128,55 @@ export default function ReportList() {
           </button>
         </div>
 
+        {/* Search Bar & Status Filter */}
+        {orders.length > 0 && (
+          <div className="space-y-2">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-xs">
+                🔍
+              </span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by test name, order #, or patient..."
+                className="w-full pl-8 pr-3 py-2 bg-white rounded-xl border border-gray-200 text-xs focus:border-[#0F5E57] focus:ring-1 focus:ring-[#0F5E57] outline-none shadow-2xs"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs font-bold">
+              {[
+                { id: 'ALL', label: `All (${orders.length})` },
+                { id: 'SIGNED', label: `Verified (${orders.filter(o => o.status === 'SIGNED').length})` },
+                { id: 'PROCESSING', label: `Processing (${orders.filter(o => o.status === 'PROCESSING').length})` },
+                { id: 'CRITICAL', label: `Critical (${orders.filter(o => o.hasCritical).length})` },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setFilterTab(tab.id)}
+                  className={`px-3 py-1 rounded-lg transition cursor-pointer whitespace-nowrap ${
+                    filterTab === tab.id
+                      ? 'bg-[#0F5E57] text-white shadow-2xs'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-3">
             <SkeletonCard />
@@ -120,16 +185,20 @@ export default function ReportList() {
           </div>
         ) : error ? (
           <ErrorState description={error} onRetry={fetchOrders} />
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <EmptyState
-            title={t('emptyReports')}
-            description="When your reports are processed and verified by the pathologist, they will appear here."
-            actionLabel={t('emptyReportsAction')}
-            onAction={fetchOrders}
+            title={searchTerm ? 'No matching reports' : t('emptyReports')}
+            description={
+              searchTerm
+                ? `No diagnostic reports match "${searchTerm}". Try adjusting your search term or filters.`
+                : 'When your reports are processed and verified by the pathologist, they will appear here.'
+            }
+            actionLabel={searchTerm ? 'Clear Search' : t('emptyReportsAction')}
+            onAction={searchTerm ? () => setSearchTerm('') : fetchOrders}
           />
         ) : (
           <div className="space-y-3.5">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <Card
                 key={order.id}
                 className="p-5 border-gray-200/90 hover:border-gray-300 transition-all shadow-sm"

@@ -121,16 +121,11 @@ async function seed() {
 
   // ─── Doctors ───
   console.log('  Creating doctors...');
-  const doctors = await Promise.all([
-    prisma.doctor.create({ data: { name: 'Dr. S. Ramanaiah' } }),
-    prisma.doctor.create({ data: { name: 'Dr. P. Anitha' } }),
-    prisma.doctor.create({ data: { name: 'Dr. K. Suresh' } }),
-    prisma.doctor.create({ data: { name: 'Dr. M. Lakshmi' } }),
-    prisma.doctor.create({ data: { name: 'Dr. V. Prasad' } }),
-    prisma.doctor.create({ data: { name: 'Dr. R. Naidu' } }),
-    prisma.doctor.create({ data: { name: 'Dr. B. Sarojini' } }),
-    prisma.doctor.create({ data: { name: 'Dr. G. Krishna' } }),
-  ]);
+  const docNames = ['Dr. S. Ramanaiah', 'Dr. P. Anitha', 'Dr. K. Suresh', 'Dr. M. Lakshmi', 'Dr. V. Prasad', 'Dr. R. Naidu', 'Dr. B. Sarojini', 'Dr. G. Krishna'];
+  const doctors = [];
+  for (const name of docNames) {
+    doctors.push(await prisma.doctor.create({ data: { name } }));
+  }
   const [drRamanaiah, drAnitha, drSuresh, drLakshmi, drPrasad, drNaidu, drSarojini, drKrishna] = doctors;
 
   // ─── Staff Users ───

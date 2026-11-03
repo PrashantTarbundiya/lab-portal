@@ -108,7 +108,7 @@ export default function HealthScorecard({ results = [], onOpenChecklist, onOpenA
               onClick={onOpenAI}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F5E57] hover:bg-[#0c4b45] text-white font-bold transition cursor-pointer shadow-2xs"
             >
-              <span>🤖</span> Ask AI Copilot
+              <span>🧪</span> Ask Labby
             </button>
           )}
         </div>
@@ -125,3 +125,4 @@ export default function HealthScorecard({ results = [], onOpenChecklist, onOpenA
     </div>
   );
 }
+

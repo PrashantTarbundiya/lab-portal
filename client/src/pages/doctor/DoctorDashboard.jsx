@@ -139,7 +139,7 @@ export default function DoctorDashboard() {
             onClick={() => setSelectedOrderForAI(r)}
             className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded font-bold transition cursor-pointer"
           >
-            <span>🤖</span> Ask AI
+            <span>🧪</span> Ask Labby
           </button>
           <a
             href={`/api/orders/${r.id}/pdf`}

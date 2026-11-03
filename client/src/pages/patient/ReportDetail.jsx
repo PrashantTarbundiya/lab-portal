@@ -237,7 +237,7 @@ export default function ReportDetail() {
                   onClick={() => setIsAIModalOpen(true)}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-[#0F5E57] hover:from-emerald-700 hover:to-[#0b4742] text-white text-xs font-bold shadow-sm transition cursor-pointer"
                 >
-                  <span>🤖</span> Ask AI (Custom Prompt)
+                  <span>🧪</span> Ask Labby
                 </button>
               </div>
 
@@ -444,20 +444,20 @@ export default function ReportDetail() {
               )}
             </div>
 
-            {/* Interactive Ask AI Feature Card */}
+            {/* Interactive Ask Labby Feature Card */}
             <div className="bg-gradient-to-br from-[#0F5E57] to-teal-800 text-white rounded-2xl p-5 shadow-sm space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">🤖</span>
-                    <h3 className="font-bold text-base">Ask AI About Your Report</h3>
+                    <span className="text-xl">🧪</span>
+                    <h3 className="font-bold text-base">Ask Labby About Your Report</h3>
                   </div>
                   <p className="text-xs text-teal-100 leading-relaxed max-w-md">
-                    Have questions about your test results? Ask custom questions or choose quick prompts in English, Telugu, or Hindi.
+                    Have questions about your test results? Labby explains clinical values in clear language, formats clean tables and checklists, and offers tips in English, Telugu, or Hindi.
                   </p>
                 </div>
                 <span className="text-[10px] bg-teal-900/60 text-teal-200 border border-teal-600/50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                  NVIDIA Nemotron 3.5
+                  Labby AI • Nemotron 3.5
                 </span>
               </div>
               <div className="pt-1 flex flex-wrap gap-2 items-center justify-between">
@@ -469,7 +469,7 @@ export default function ReportDetail() {
                   onClick={() => setIsAIModalOpen(true)}
                   className="px-4 py-2 bg-white text-[#0F5E57] hover:bg-teal-50 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
                 >
-                  💬 Open AI Assistant →
+                  🧪 Chat with Labby →
                 </button>
               </div>
             </div>

@@ -122,3 +122,4 @@ export default function VisualRangeGauge({ parameter, value, unit, refRangeRaw, 
     </div>
   );
 }
+

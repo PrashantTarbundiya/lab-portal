@@ -380,7 +380,7 @@ export default function StaffOrderDetail() {
                   onClick={() => setIsAIModalOpen(true)}
                   className="font-semibold text-sm border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
                 >
-                  🤖 Ask Clinical AI (Custom Prompt)
+                  🧪 Ask Labby AI (Custom Prompt)
                 </Button>
               </div>
 

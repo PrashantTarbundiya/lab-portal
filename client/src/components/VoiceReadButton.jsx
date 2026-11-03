@@ -84,3 +84,4 @@ export default function VoiceReadButton({ text, lang = 'en', className = '' }) {
     </button>
   );
 }
+

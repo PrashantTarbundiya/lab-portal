@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import Modal from './Modal';
 import Button from './Button';
 import LoadingSpinner from './LoadingSpinner';
+import FormattedAIResponse from './FormattedAIResponse';
 
 export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientName, results = [] }) {
   const [customPrompt, setCustomPrompt] = useState('');
@@ -70,7 +71,7 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="🤖 Diagnostic AI Assistant"
+      title="🧪 Ask Labby (Diagnostic AI)"
       size="lg"
     >
       <div className="space-y-4 max-h-[75vh] flex flex-col">
@@ -80,22 +81,22 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
             Patient: <strong className="text-gray-800">{patientName || 'Patient'}</strong> • Order:{' '}
             <span className="font-mono font-bold text-[#0F5E57]">#{orderNo}</span>
           </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-medium text-[11px] border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 font-bold text-[11px] border border-teal-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Nemotron 3.5 Super VL
+            Labby AI • Nemotron 3.5
           </span>
         </div>
 
         {/* Conversation History / Output Scroll Area */}
         <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-[160px] max-h-[380px]">
           {conversation.length === 0 && !loading && (
-            <div className="text-center py-6 px-4 bg-gray-50/70 rounded-2xl border border-dashed border-gray-200">
-              <span className="text-3xl block mb-2">💬</span>
+            <div className="text-center py-6 px-4 bg-teal-50/40 rounded-2xl border border-dashed border-teal-200">
+              <span className="text-3xl block mb-2">🧪</span>
               <h4 className="text-sm font-bold text-gray-800 mb-1">
-                Have a question about your report?
+                Hi, I'm Labby! Have a question about your report?
               </h4>
               <p className="text-xs text-gray-500 max-w-sm mx-auto mb-3">
-                Select a quick prompt below or type your own custom question. The AI analyzes your exact test values to give personalized explanations.
+                Select a quick prompt below or type your own question. I'll explain your biological values, reference ranges, and wellness tips.
               </p>
               {results.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 justify-center">
@@ -121,25 +122,26 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
                 </div>
               </div>
 
-              {/* AI Answer card */}
+              {/* AI Answer card with Formatted Markdown / Tables / Bold */}
               <div className="flex justify-start">
                 <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl rounded-tl-xs p-4 text-xs md:text-sm text-gray-800 max-w-[95%] space-y-2 shadow-xs">
                   <div className="flex items-center justify-between text-[11px] text-emerald-900 font-bold border-b border-emerald-100 pb-1.5">
                     <span className="flex items-center gap-1.5">
-                      <span>✨</span> Clinical AI Explanation
+                      <span>🧪</span> Labby's Clinical Explanation
                     </span>
                     <button
                       onClick={() => handleCopy(c.answer, idx)}
-                      className="text-emerald-700 hover:text-emerald-900 font-semibold underline"
+                      className="text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
                     >
                       {copiedIndex === idx ? '✓ Copied' : 'Copy'}
                     </button>
                   </div>
-                  <div className="whitespace-pre-line leading-relaxed text-gray-800 font-normal">
-                    {c.answer}
-                  </div>
+                  
+                  {/* Clean Formatted AI Output (Bold, Tables, Lists without raw asterisks/hashes) */}
+                  <FormattedAIResponse content={c.answer} />
+
                   <div className="pt-1 flex items-center justify-between text-[10px] text-gray-400">
-                    <span>Model: {c.model}</span>
+                    <span>Powered by Labby & NVIDIA Nemotron 3.5</span>
                     <span className="italic">Educational AI • Consult your doctor</span>
                   </div>
                 </div>
@@ -148,10 +150,10 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
           ))}
 
           {loading && (
-            <div className="p-4 bg-emerald-50/40 border border-emerald-100 rounded-2xl flex items-center gap-3">
+            <div className="p-4 bg-teal-50/50 border border-teal-100 rounded-2xl flex items-center gap-3">
               <LoadingSpinner size="sm" />
-              <div className="text-xs text-emerald-900 font-medium">
-                Analyzing your diagnostic results with NVIDIA Nemotron 3.5 Super VL...
+              <div className="text-xs text-teal-900 font-medium">
+                Labby is reviewing your test values with NVIDIA Nemotron 3.5 Super VL...
               </div>
             </div>
           )}
@@ -200,7 +202,7 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
                 }
               }}
               disabled={loading}
-              placeholder="Type any custom question (e.g. 'What caused my high potassium and what foods should I avoid?')..."
+              placeholder="Type your question for Labby (e.g. 'What caused my high potassium and what foods should I avoid?')..."
               className="flex-1 rounded-xl border border-gray-300 p-2.5 text-xs md:text-sm focus:border-[#0F5E57] focus:ring-1 focus:ring-[#0F5E57] outline-none resize-none"
             />
             <Button
@@ -211,7 +213,7 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
               onClick={() => handleAsk()}
               className="self-end px-4 py-2.5 font-bold text-xs"
             >
-              Ask AI →
+              Ask Labby →
             </Button>
           </div>
         </div>

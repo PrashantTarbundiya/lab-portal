@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LoadingSpinner from './LoadingSpinner';
 import VoiceReadButton from './VoiceReadButton';
+import FormattedAIResponse from './FormattedAIResponse';
 
 export default function FloatingAICopilot({ orderId = null, orderNo = null, patientName = null }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +13,7 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      text: 'Hello! I am your Diagnostic AI Copilot powered by NVIDIA Nemotron 3.5 Super VL. Ask me any question about your lab tests, reference ranges, preparation, or dietary health tips!',
+      text: "Hello! I'm Labby 🧪, your friendly diagnostic companion powered by NVIDIA Nemotron 3.5. Ask me anything about your lab tests, biological reference ranges, fasting preparation, or health tips!",
       time: 'Just now',
     },
   ]);
@@ -80,36 +81,37 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-[#0F5E57] to-teal-900 text-white font-bold text-xs md:text-sm shadow-lg shadow-teal-950/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 border border-teal-400/40 cursor-pointer"
+          className="group flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-[#0F5E57] to-teal-900 text-white font-bold text-xs md:text-sm shadow-lg shadow-teal-950/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 border border-teal-400/40 cursor-pointer"
         >
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
           </span>
-          <span className="text-base">✨</span>
-          <span>Ask AI Copilot</span>
+          <span className="text-base">🧪</span>
+          <span>Ask Labby</span>
           <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-mono hidden sm:inline">
-            Nemotron 3.5
+            Lab AI
           </span>
         </button>
       )}
 
       {/* Expanded Floating Chat Panel */}
       {isOpen && (
-        <div className="w-[92vw] sm:w-[400px] h-[520px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="w-[92vw] sm:w-[410px] h-[520px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#0F5E57] to-teal-900 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center text-lg">
-                🤖
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-xl">
+                🧪
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-bold text-sm tracking-tight">Lab AI Copilot</h4>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <h4 className="font-bold text-sm tracking-tight">Labby</h4>
+                  <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-bold">AI</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5"></span>
                 </div>
                 <p className="text-[10px] text-teal-200">
-                  {orderNo ? `Context: Order #${orderNo}` : 'NVIDIA Nemotron 3.5 Super VL'}
+                  {orderNo ? `Diagnostic Context: Order #${orderNo}` : 'Your Diagnostic Companion'}
                 </p>
               </div>
             </div>
@@ -117,7 +119,7 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
             <button
               onClick={() => setIsOpen(false)}
               className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer"
-              title="Close Copilot"
+              title="Close Labby"
             >
               ✕
             </button>
@@ -131,13 +133,17 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
                 className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[88%] p-3.5 rounded-2xl ${
+                  className={`max-w-[90%] p-3.5 rounded-2xl ${
                     m.role === 'user'
                       ? 'bg-[#0F5E57] text-white rounded-tr-xs shadow-xs font-medium'
                       : 'bg-white text-gray-800 border border-gray-200/90 rounded-tl-xs shadow-2xs leading-relaxed'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{m.text}</p>
+                  {m.role === 'assistant' ? (
+                    <FormattedAIResponse content={m.text} />
+                  ) : (
+                    <p className="whitespace-pre-line">{m.text}</p>
+                  )}
 
                   {/* Narration and copy for assistant messages */}
                   {m.role === 'assistant' && (
@@ -145,7 +151,7 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
                       <VoiceReadButton text={m.text} lang={lang} />
                       <button
                         onClick={() => navigator.clipboard?.writeText(m.text)}
-                        className="text-[10px] text-gray-400 hover:text-gray-700 underline font-semibold"
+                        className="text-[10px] text-gray-400 hover:text-gray-700 underline font-semibold cursor-pointer"
                       >
                         Copy
                       </button>
@@ -157,9 +163,9 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 p-3 bg-white rounded-2xl border border-gray-100 max-w-[80%] shadow-2xs">
+              <div className="flex items-center gap-2.5 p-3 bg-white rounded-2xl border border-gray-100 max-w-[85%] shadow-2xs">
                 <LoadingSpinner size="sm" />
-                <span className="text-[11px] text-gray-600 font-medium">Generating response...</span>
+                <span className="text-[11px] text-teal-900 font-medium">Labby is formulating your clinical explanation...</span>
               </div>
             )}
           </div>
@@ -191,7 +197,7 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
                 type="text"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Ask about your lab report or health..."
+                placeholder="Ask Labby about your lab report or health..."
                 disabled={loading}
                 className="flex-1 bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:bg-white focus:border-[#0F5E57] outline-none transition"
               />
@@ -200,7 +206,7 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
                 disabled={!prompt.trim() || loading}
                 className="px-3.5 py-2 bg-[#0F5E57] hover:bg-[#0c4b45] text-white rounded-xl font-bold text-xs shadow-xs disabled:opacity-40 transition cursor-pointer"
               >
-                Send
+                Ask Labby
               </button>
             </form>
           </div>
@@ -209,3 +215,4 @@ export default function FloatingAICopilot({ orderId = null, orderNo = null, pati
     </div>
   );
 }
+

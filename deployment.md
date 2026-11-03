@@ -44,6 +44,8 @@ LAB_NAME=Company A Diagnostics
 OTP_DEMO_MODE=true
 DEMO_PASSWORD=Demo@12345
 LINK_TTL_HOURS=72
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=nvidia/nemotron-3.5-super-vl:free
 ```
 
 ### Step 3: Start Local PostgreSQL via Docker

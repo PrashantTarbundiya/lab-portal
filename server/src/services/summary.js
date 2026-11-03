@@ -329,14 +329,15 @@ export function generateFallback(parameter, value, range, lang) {
 // ────────────────────────────────────────────────────────────
 
 /**
- * Call Anthropic Claude API for summary generation.
+ * Call AI API (OpenRouter NVIDIA Nemotron or Anthropic Claude) for summary generation.
  * @param {Array<{parameter: string, value: string, range: string, flag: string}>} items
  * @param {'en'|'te'|'hi'} lang
  * @returns {Promise<Array|null>}
  */
 export async function callAI(items, lang) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!openRouterKey && !anthropicKey) return null;
 
   const langNames = { en: 'English', te: 'Telugu', hi: 'Hindi' };
   const langName = langNames[lang] || 'English';
@@ -361,36 +362,68 @@ Respond with a JSON array of objects, each with "parameter" and "text" fields. N
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-haiku-20241022',
-          max_tokens: 2048,
-          temperature: 0,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-        signal: controller.signal,
-      });
+      let text = null;
 
-      clearTimeout(timeoutId);
+      if (openRouterKey) {
+        const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openRouterKey}`,
+            'HTTP-Referer': process.env.APP_BASE_URL || 'http://localhost:5173',
+            'X-Title': 'Company A Lab Portal',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0,
+          }),
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        console.error(`AI API error (attempt ${attempt}):`, response.status);
-        continue;
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          console.error(`OpenRouter API error (attempt ${attempt}):`, response.status);
+          continue;
+        }
+
+        const data = await response.json();
+        text = data.choices?.[0]?.message?.content;
+      } else {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
+            max_tokens: 2048,
+            temperature: 0,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          console.error(`Anthropic API error (attempt ${attempt}):`, response.status);
+          continue;
+        }
+
+        const data = await response.json();
+        text = data.content?.[0]?.text;
       }
 
-      const data = await response.json();
-      const text = data.content?.[0]?.text;
       if (!text) continue;
 
-      // Extract JSON from response (may have markdown wrappers)
+      // Extract JSON from response (may have markdown code wrappers)
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) continue;
 

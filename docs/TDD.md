@@ -312,7 +312,7 @@ flowchart TD
     TEMPL -->|"Yes"| USE_TEMPL["Use locked template text\n(en / te / hi)\nZero AI calls. 0ms latency."]
     TEMPL -->|"No"| IN_GUARD{"Input Guard:\nMatches regex & <= 6 words?"}
     IN_GUARD -->|"No"| FALLBACK["Safe Fallback:\n'The value for {param} is outside usual range. Please see your doctor.'"]
-    IN_GUARD -->|"Yes"| AI_CALL["Call Claude API (Temp 0, 8s timeout, 1 retry)"]
+    IN_GUARD -->|"Yes"| AI_CALL["Call AI API via OpenRouter / Anthropic\n(NVIDIA Nemotron 3.5 Super VL / Claude, Temp 0, 12s timeout, 1 retry)"]
     AI_CALL --> OUT_GUARD{"Output Guards in Code:\n1. Strict JSON format?\n2. No invented numbers?\n3. No banned words?\n4. Word count <= 30?"}
     OUT_GUARD -->|"Fails any check"| FALLBACK
     OUT_GUARD -->|"All pass"| CACHE["Store in Summary table\n(source = AI, reviewStatus = UNREVIEWED)"]

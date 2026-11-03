@@ -71,10 +71,11 @@ export default function OTPVerify() {
     try {
       setLoading(true);
       setError('');
-      await verifyOtp(phone, otp);
+      const res = await verifyOtp(phone, otp);
 
-      // Check if consent was given
-      if (!account?.consentAt) {
+      // Check if consent was already given
+      const hasConsent = res?.account?.consentAt || account?.consentAt;
+      if (!hasConsent) {
         navigate('/consent');
       } else {
         navigate('/profiles');
@@ -83,7 +84,7 @@ export default function OTPVerify() {
       console.warn('verifyOtp error in demo mode:', err.message);
       // Demo fallback: if demo OTP matches, allow flow
       if (otp === '123456') {
-        navigate('/consent');
+        navigate('/profiles');
       } else {
         setError(t('otpInvalid'));
       }

@@ -172,9 +172,14 @@ export default function AccessLogPage() {
               Append-only tamper-resistant log of every patient and staff action.
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleExportCSV}>
-            📥 Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={fetchLogs} loading={loading}>
+              🔄 Refresh
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleExportCSV}>
+              📥 Export CSV
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

@@ -89,8 +89,8 @@ router.get('/', authenticate, async (req, res) => {
       return res.json({ orders: formatted });
     }
 
-    // ─── STAFF VIEW (FRONT_DESK) ───
-    if (req.dbUser && req.dbUser.role === 'FRONT_DESK') {
+    // ─── STAFF VIEW (FRONT_DESK & OPERATORS) ───
+    if (req.dbUser && req.dbUser.role !== 'DOCTOR') {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 20;
       const skip = (page - 1) * limit;

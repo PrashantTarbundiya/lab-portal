@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireStaff } from '../middleware/auth.js';
+import { authenticate, requireRole, requireStaff } from '../middleware/auth.js';
 import { writeLog } from '../lib/audit.js';
 import { generateToken, LINK_TTL_HOURS } from '../lib/tokens.js';
 import { messageProvider, buildReportMessage } from '../services/messaging.js';
@@ -10,7 +10,7 @@ const router = Router();
 const LAB_NAME = process.env.LAB_NAME || 'Company A Diagnostics';
 
 // GET /api/tasks
-router.get('/', authenticate, requireStaff, async (req, res) => {
+router.get('/', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (req, res) => {
   try {
     const { type, status } = req.query;
 
@@ -46,7 +46,7 @@ router.get('/', authenticate, requireStaff, async (req, res) => {
 });
 
 // GET /api/tasks/stats
-router.get('/stats', authenticate, requireStaff, async (_req, res) => {
+router.get('/stats', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (_req, res) => {
   try {
     const openTasks = await prisma.callbackTask.groupBy({
       by: ['type'],
@@ -74,7 +74,7 @@ router.get('/stats', authenticate, requireStaff, async (_req, res) => {
 
 // PUT /api/tasks/:id/done
 // Marks callback done. If CRITICAL_CALLBACK, releases held link and sends message!
-router.put('/:id/done', authenticate, requireStaff, async (req, res) => {
+router.put('/:id/done', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (req, res) => {
   try {
     const { id } = req.params;
     const schema = z.object({

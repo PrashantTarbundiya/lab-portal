@@ -42,7 +42,9 @@ export default function App() {
       <Route path="/staff/import" element={<ImportPage />} />
       <Route path="/staff/tasks" element={<TasksPage />} />
       <Route path="/staff/access-log" element={<AccessLogPage />} />
+      <Route path="/staff/access-logs" element={<AccessLogPage />} />
       <Route path="/staff/operations" element={<OperationsReport />} />
+      <Route path="/staff/reports" element={<OperationsReport />} />
 
       {/* ─── Doctor Flows ─── */}
       <Route path="/doctor/login" element={<StaffLogin />} />

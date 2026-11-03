@@ -20,19 +20,16 @@ export default function StaffLogin() {
 
     try {
       setLoading(true);
-      await staffLogin(email, password);
-      // Wait for auth context to update role, then navigate
-      navigate('/staff');
-    } catch (err) {
-      console.warn('Staff login fallback:', err);
-      // Demo fallback: if demo credentials, simulate login
-      if (email === 'doctor@demo.local') {
+      const res = await staffLogin(email, password);
+      const isDoctor = email.toLowerCase().includes('doctor') || res?.role === 'DOCTOR';
+      if (isDoctor) {
         navigate('/doctor');
-      } else if (email === 'frontdesk@demo.local' || email === 'frontdesk2@demo.local') {
-        navigate('/staff');
       } else {
-        setError('Invalid email or password. Please try again.');
+        navigate('/staff');
       }
+    } catch (err) {
+      console.warn('Staff login error:', err);
+      setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireStaff } from '../middleware/auth.js';
+import { authenticate, requireRole, requireStaff } from '../middleware/auth.js';
 import { writeLog } from '../lib/audit.js';
 
 const router = Router();
 
 // GET /api/access-log
-router.get('/', authenticate, requireStaff, async (req, res) => {
+router.get('/', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 50;
@@ -54,7 +54,7 @@ router.get('/', authenticate, requireStaff, async (req, res) => {
 
 // GET /api/access-log/export
 // CSV export of logs
-router.get('/export', authenticate, requireStaff, async (_req, res) => {
+router.get('/export', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (_req, res) => {
   try {
     const logs = await prisma.accessLog.findMany({
       orderBy: { at: 'desc' },

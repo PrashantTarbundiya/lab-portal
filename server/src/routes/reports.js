@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireStaff } from '../middleware/auth.js';
+import { authenticate, requireRole, requireStaff } from '../middleware/auth.js';
 
 const router = Router();
 
 // GET /api/reports/operations
 // 4 KPIs and 14-day trend for operations
-router.get('/operations', authenticate, requireStaff, async (_req, res) => {
+router.get('/operations', authenticate, requireRole('FRONT_DESK', 'DOCTOR'), async (_req, res) => {
   try {
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);

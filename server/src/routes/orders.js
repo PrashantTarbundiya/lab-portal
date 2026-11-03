@@ -341,8 +341,25 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    if (!order.pdf) {
-      return res.status(404).json({ error: 'PDF report not yet available' });
+    let pdfBuffer = order.pdf;
+    let fileName = order.pdfFileName || `${order.orderNo}_report.pdf`;
+
+    if (!pdfBuffer) {
+      const fullOrder = await prisma.order.findUnique({
+        where: { id },
+        include: { results: true, patient: true, doctor: true },
+      });
+      if (fullOrder && fullOrder.results?.length > 0) {
+        const { generatePDF } = await import('../services/import.js');
+        const pdfBytes = await generatePDF(fullOrder, fullOrder.results, fullOrder.patient);
+        pdfBuffer = Buffer.from(pdfBytes);
+        await prisma.order.update({
+          where: { id },
+          data: { pdf: pdfBuffer, pdfFileName: fileName },
+        });
+      } else {
+        return res.status(404).json({ error: 'PDF report not yet available' });
+      }
     }
 
     await writeLog({
@@ -354,12 +371,11 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       req,
     });
 
-    const fileName = order.pdfFileName || `${order.orderNo}_report.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
-    return res.send(Buffer.from(order.pdf));
+    return res.send(Buffer.from(pdfBuffer));
   } catch (err) {
     console.error('GET /api/orders/:id/pdf error:', err);
     return res.status(500).json({ error: 'Failed to download PDF' });

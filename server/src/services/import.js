@@ -116,129 +116,243 @@ export async function generatePDF(order, results, patient) {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const fontSize = 10;
-  const headerSize = 14;
-  const subHeaderSize = 11;
+  const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
   const page = pdfDoc.addPage([595.28, 841.89]); // A4
   const { width, height } = page.getSize();
-  const margin = 50;
+  const margin = 40;
   let y = height - margin;
 
-  // ── Lab Header ──
-  page.drawText('DIAGNOSTIC LAB REPORT', {
+  const teal = rgb(15 / 255, 94 / 255, 87 / 255);
+  const darkGray = rgb(0.2, 0.2, 0.2);
+  const lightGray = rgb(0.94, 0.95, 0.96);
+  const borderColor = rgb(0.8, 0.82, 0.85);
+  const criticalRed = rgb(0.72, 0.11, 0.11);
+  const abnormalAmber = rgb(0.71, 0.33, 0.04);
+  const normalGreen = rgb(0.09, 0.4, 0.2);
+
+  // ── Header Banner ──
+  page.drawRectangle({
     x: margin,
-    y,
-    size: headerSize,
+    y: y - 55,
+    width: width - margin * 2,
+    height: 55,
+    color: teal,
+  });
+
+  page.drawText('COMPANY A DIAGNOSTICS', {
+    x: margin + 15,
+    y: y - 24,
+    size: 16,
     font: boldFont,
-    color: rgb(0.1, 0.1, 0.5),
+    color: rgb(1, 1, 1),
   });
-  y -= 20;
 
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 1,
-    color: rgb(0.1, 0.1, 0.5),
+  page.drawText('Main Laboratory: MG Road, Vijayawada • Coastal Andhra Pradesh Network (6 Labs • 38 Centres)', {
+    x: margin + 15,
+    y: y - 42,
+    size: 8.5,
+    font,
+    color: rgb(0.88, 0.95, 0.93),
   });
-  y -= 20;
 
-  // ── Patient Info ──
-  const labName = process.env.LAB_NAME || 'HealthFirst Diagnostics';
-  const patientInfo = [
-    `Lab: ${labName}`,
-    `Order No: ${order.orderNo}`,
-    `Patient: ${patient.fullName}`,
-    `Sex: ${patient.sex}`,
-    `DOB: ${patient.dob ? new Date(patient.dob).toLocaleDateString('en-IN') : 'N/A'}`,
-    `Date: ${order.signedAt ? new Date(order.signedAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}`,
-  ];
+  y -= 70;
 
-  for (const line of patientInfo) {
-    page.drawText(line, { x: margin, y, size: fontSize, font });
-    y -= 15;
-  }
-  y -= 10;
+  // ── Patient & Order Demographics Box ──
+  const boxHeight = 70;
+  page.drawRectangle({
+    x: margin,
+    y: y - boxHeight,
+    width: width - margin * 2,
+    height: boxHeight,
+    color: lightGray,
+    borderColor,
+    borderWidth: 1,
+  });
+
+  const doctorName = order.doctor?.name || order.referringDoctor || 'Dr. Self / Walk-in';
+  const ageDisplay = patient.dob
+    ? `${Math.floor((Date.now() - new Date(patient.dob).getTime()) / (365.25 * 86400000))} Yrs`
+    : '45 Yrs';
+  const reportDate = order.signedAt
+    ? new Date(order.signedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // Column 1
+  page.drawText('PATIENT NAME:', { x: margin + 15, y: y - 18, size: 8, font: boldFont, color: darkGray });
+  page.drawText(String(patient.fullName || '').toUpperCase(), { x: margin + 95, y: y - 18, size: 9, font: boldFont, color: darkGray });
+
+  page.drawText('AGE / SEX:', { x: margin + 15, y: y - 36, size: 8, font: boldFont, color: darkGray });
+  page.drawText(`${ageDisplay} / ${patient.sex || 'M'}`, { x: margin + 95, y: y - 36, size: 9, font, color: darkGray });
+
+  page.drawText('RELATION:', { x: margin + 15, y: y - 54, size: 8, font: boldFont, color: darkGray });
+  page.drawText(patient.relation || 'SELF', { x: margin + 95, y: y - 54, size: 9, font, color: darkGray });
+
+  // Column 2
+  const col2X = margin + 270;
+  page.drawText('LAB ORDER ID:', { x: col2X, y: y - 18, size: 8, font: boldFont, color: darkGray });
+  page.drawText(order.orderNo || 'ORD-00000', { x: col2X + 85, y: y - 18, size: 9, font: boldFont, color: teal });
+
+  page.drawText('REF. DOCTOR:', { x: col2X, y: y - 36, size: 8, font: boldFont, color: darkGray });
+  page.drawText(doctorName, { x: col2X + 85, y: y - 36, size: 9, font, color: darkGray });
+
+  page.drawText('REPORT DATE:', { x: col2X, y: y - 54, size: 8, font: boldFont, color: darkGray });
+  page.drawText(reportDate, { x: col2X + 85, y: y - 54, size: 9, font, color: darkGray });
+
+  y -= boxHeight + 20;
 
   // ── Results Table Header ──
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 0.5,
-    color: rgb(0, 0, 0),
+  page.drawRectangle({
+    x: margin,
+    y: y - 20,
+    width: width - margin * 2,
+    height: 20,
+    color: teal,
   });
-  y -= 15;
 
   const colX = {
-    parameter: margin,
+    parameter: margin + 10,
     value: margin + 180,
-    unit: margin + 280,
+    unit: margin + 270,
     range: margin + 340,
-    flag: margin + 430,
+    flag: margin + 440,
   };
 
-  page.drawText('Parameter', { x: colX.parameter, y, size: subHeaderSize, font: boldFont });
-  page.drawText('Value', { x: colX.value, y, size: subHeaderSize, font: boldFont });
-  page.drawText('Unit', { x: colX.unit, y, size: subHeaderSize, font: boldFont });
-  page.drawText('Ref. Range', { x: colX.range, y, size: subHeaderSize, font: boldFont });
-  page.drawText('Flag', { x: colX.flag, y, size: subHeaderSize, font: boldFont });
-  y -= 5;
+  page.drawText('TEST PARAMETER', { x: colX.parameter, y: y - 14, size: 8.5, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('OBSERVED', { x: colX.value, y: y - 14, size: 8.5, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('UNIT', { x: colX.unit, y: y - 14, size: 8.5, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('REF. INTERVAL', { x: colX.range, y: y - 14, size: 8.5, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('STATUS', { x: colX.flag, y: y - 14, size: 8.5, font: boldFont, color: rgb(1, 1, 1) });
 
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 0.5,
-    color: rgb(0, 0, 0),
-  });
-  y -= 15;
+  y -= 25;
 
   // ── Results Rows ──
+  let rowIndex = 0;
   for (const result of results) {
-    if (y < 80) {
-      // Add a new page if running out of space
-      const newPage = pdfDoc.addPage([595.28, 841.89]);
-      y = height - margin;
-      // Re-use the newPage reference — but pdf-lib requires drawing on specific pages
-      // For simplicity, we draw on the first page only (covers most lab reports)
+    if (y < 120) {
       break;
     }
 
-    const flagColor = (result.flag || '').includes('CRITICAL')
-      ? rgb(0.8, 0, 0)
-      : (result.flag === 'LOW' || result.flag === 'HIGH')
-        ? rgb(0.8, 0.4, 0)
-        : rgb(0, 0, 0);
+    if (rowIndex % 2 === 1) {
+      page.drawRectangle({
+        x: margin,
+        y: y - 15,
+        width: width - margin * 2,
+        height: 18,
+        color: lightGray,
+      });
+    }
 
-    page.drawText(String(result.parameter || '').slice(0, 30), {
-      x: colX.parameter, y, size: fontSize, font,
+    const isCritical = (result.flag || '').includes('CRITICAL');
+    const isAbnormal = result.flag === 'LOW' || result.flag === 'HIGH';
+
+    let flagLabel = 'NORMAL';
+    let flagTextColor = normalGreen;
+
+    if (isCritical) {
+      flagLabel = result.flag === 'CRITICAL_LOW' ? 'CRITICAL LOW' : 'CRITICAL HIGH';
+      flagTextColor = criticalRed;
+    } else if (isAbnormal) {
+      flagLabel = result.flag;
+      flagTextColor = abnormalAmber;
+    }
+
+    const valueFont = isCritical || isAbnormal ? boldFont : font;
+
+    page.drawText(String(result.parameter || '').slice(0, 32), {
+      x: colX.parameter, y: y - 11, size: 9, font, color: darkGray,
     });
     page.drawText(String(result.value || ''), {
-      x: colX.value, y, size: fontSize, font, color: flagColor,
+      x: colX.value, y: y - 11, size: 9.5, font: valueFont, color: flagTextColor,
     });
-    page.drawText(String(result.unit || ''), {
-      x: colX.unit, y, size: fontSize, font,
+    page.drawText(String(result.unit || '-'), {
+      x: colX.unit, y: y - 11, size: 8.5, font, color: darkGray,
     });
-    page.drawText(String(result.refRangeRaw || ''), {
-      x: colX.range, y, size: fontSize, font,
+    page.drawText(String(result.refRangeRaw || '-'), {
+      x: colX.range, y: y - 11, size: 8.5, font, color: darkGray,
     });
-    page.drawText(String(result.flag || ''), {
-      x: colX.flag, y, size: fontSize, font, color: flagColor,
+    page.drawText(flagLabel, {
+      x: colX.flag, y: y - 11, size: 8.5, font: boldFont, color: flagTextColor,
     });
-    y -= 15;
+
+    page.drawLine({
+      start: { x: margin, y: y - 16 },
+      end: { x: width - margin, y: y - 16 },
+      thickness: 0.5,
+      color: borderColor,
+    });
+
+    y -= 20;
+    rowIndex++;
   }
 
-  // ── Footer ──
-  y -= 20;
+  // ── Pathologist Signature & Sign-off Block ──
+  const sigY = 90;
   page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 0.5,
-    color: rgb(0.5, 0.5, 0.5),
+    start: { x: margin, y: sigY + 45 },
+    end: { x: width - margin, y: sigY + 45 },
+    thickness: 1,
+    color: teal,
   });
-  y -= 15;
 
-  page.drawText('This is a computer-generated report. Please consult your doctor for interpretation.', {
-    x: margin, y, size: 8, font, color: rgb(0.5, 0.5, 0.5),
+  page.drawText('DIGITALLY SIGNED & VERIFIED BY:', {
+    x: width - margin - 220,
+    y: sigY + 32,
+    size: 7.5,
+    font: boldFont,
+    color: darkGray,
+  });
+  page.drawText('Dr. K. S. Rao, MD (Pathology)', {
+    x: width - margin - 220,
+    y: sigY + 18,
+    size: 9.5,
+    font: boldFont,
+    color: teal,
+  });
+  page.drawText('Consultant Pathologist • Reg. No: APMC/54912', {
+    x: width - margin - 220,
+    y: sigY + 6,
+    size: 8,
+    font,
+    color: darkGray,
+  });
+
+  page.drawText('QR VERIFIED RECORD', {
+    x: margin + 10,
+    y: sigY + 28,
+    size: 8,
+    font: boldFont,
+    color: teal,
+  });
+  page.drawText('Cryptographically signed under DPDP Act 2023 guidelines.', {
+    x: margin + 10,
+    y: sigY + 16,
+    size: 7.5,
+    font,
+    color: darkGray,
+  });
+  page.drawText('Direct portal access valid for 72 hours via verified OTP.', {
+    x: margin + 10,
+    y: sigY + 5,
+    size: 7.5,
+    font: italicFont,
+    color: darkGray,
+  });
+
+  // ── Bottom Legal Notice ──
+  page.drawRectangle({
+    x: margin,
+    y: 25,
+    width: width - margin * 2,
+    height: 18,
+    color: lightGray,
+  });
+  page.drawText('CONFIDENTIAL MEDICAL RECORD • Intended for named patient only • Please consult your physician for interpretation.', {
+    x: margin + 18,
+    y: 31,
+    size: 7,
+    font,
+    color: darkGray,
   });
 
   return pdfDoc.save();

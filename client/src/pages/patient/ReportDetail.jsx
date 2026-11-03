@@ -12,7 +12,6 @@ import PatientNavbar from '../../components/PatientNavbar';
 import DemoRibbon from '../../components/DemoRibbon';
 import ErrorState from '../../components/ErrorState';
 import { SkeletonText } from '../../components/Skeleton';
-import AskAIModal from '../../components/AskAIModal';
 import VisualRangeGauge from '../../components/VisualRangeGauge';
 import VoiceReadButton from '../../components/VoiceReadButton';
 import DoctorChecklistModal from '../../components/DoctorChecklistModal';
@@ -27,8 +26,14 @@ export default function ReportDetail() {
   const [downloading, setDownloading] = useState(false);
   const [showAllResults, setShowAllResults] = useState(true);
   const [viewMode, setViewMode] = useState('gauges'); // 'gauges' | 'table'
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isSideChatOpen, setIsSideChatOpen] = useState(false);
+  const [sideChatQuery, setSideChatQuery] = useState('');
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
+
+  const openLabbyChat = (question = '') => {
+    setSideChatQuery(question);
+    setIsSideChatOpen(true);
+  };
 
   // Flag Modal state
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -216,7 +221,7 @@ export default function ReportDetail() {
               orderNo={order.orderNo}
               patientName={order.patient?.fullName}
               onOpenChecklist={() => setIsChecklistModalOpen(true)}
-              onOpenAI={() => setIsAIModalOpen(true)}
+              onOpenAI={() => openLabbyChat()}
             />
 
             {/* "What this means" Summary Section */}
@@ -234,7 +239,7 @@ export default function ReportDetail() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsAIModalOpen(true)}
+                  onClick={() => openLabbyChat()}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-[#0F5E57] hover:from-emerald-700 hover:to-[#0b4742] text-white text-xs font-bold shadow-sm transition cursor-pointer"
                 >
                   <span>🧪</span> Ask Labby
@@ -305,9 +310,22 @@ export default function ReportDetail() {
                           {item.text}
                         </p>
 
-                        <div className="pt-2 flex items-center justify-between border-t border-amber-200/50">
-                          <VoiceReadButton text={item.text} lang={lang} />
-                          <span className="text-[10px] text-gray-400 font-medium">Bilingual Audio Voice</span>
+                        <div className="pt-2 flex items-center justify-between flex-wrap gap-2 border-t border-amber-200/50">
+                          <div className="flex items-center gap-2">
+                            <VoiceReadButton text={item.text} lang={lang} />
+                            <span className="text-[10px] text-gray-400 font-medium hidden sm:inline">Audio</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openLabbyChat(
+                                `Why is my ${item.parameter} level ${item.value} ${item.unit || ''} (${item.flag}) and what should I discuss with my doctor?`
+                              )
+                            }
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0F5E57] hover:text-emerald-900 bg-white hover:bg-teal-50 border border-teal-200/80 px-2.5 py-1 rounded-lg transition cursor-pointer shadow-2xs"
+                          >
+                            <span>🧪</span> Ask Labby
+                          </button>
                         </div>
                       </div>
                     );
@@ -394,6 +412,11 @@ export default function ReportDetail() {
                       unit={r.unit}
                       refRangeRaw={r.refRangeRaw}
                       flag={r.flag}
+                      onAskLabby={(param, val, unit, flag) =>
+                        openLabbyChat(
+                          `What does my ${param} result of ${val} ${unit || ''} (${flag}) mean in Order #${order.orderNo}, and what should I do?`
+                        )
+                      }
                     />
                   ))}
                 </div>
@@ -409,6 +432,7 @@ export default function ReportDetail() {
                         <th className="py-2.5 text-right">{t('result')}</th>
                         <th className="py-2.5 text-right">{t('refRange')}</th>
                         <th className="py-2.5 text-center">Status</th>
+                        <th className="py-2.5 text-right">AI Insights</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 tabular-nums">
@@ -434,6 +458,21 @@ export default function ReportDetail() {
                               }`}>
                                 {r.flag || 'NORMAL'}
                               </span>
+                            </td>
+                            <td className="py-2.5 text-right">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openLabbyChat(
+                                    `What does ${r.parameter}: ${r.value} ${r.unit || ''} (${r.flag || 'NORMAL'}) mean in my lab report?`
+                                  )
+                                }
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0F5E57] hover:text-white bg-teal-50 hover:bg-[#0F5E57] border border-teal-200 px-2 py-0.5 rounded-md transition cursor-pointer shadow-2xs"
+                                title={`Ask Labby about ${r.parameter}`}
+                              >
+                                <span>🧪</span>
+                                <span>Ask</span>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -466,7 +505,7 @@ export default function ReportDetail() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsAIModalOpen(true)}
+                  onClick={() => openLabbyChat()}
                   className="px-4 py-2 bg-white text-[#0F5E57] hover:bg-teal-50 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
                 >
                   🧪 Chat with Labby →
@@ -550,18 +589,6 @@ export default function ReportDetail() {
         </form>
       </Modal>
 
-      {/* Ask AI Interactive Modal with Custom Prompt */}
-      {order && (
-        <AskAIModal
-          isOpen={isAIModalOpen}
-          onClose={() => setIsAIModalOpen(false)}
-          orderId={order.id}
-          orderNo={order.orderNo}
-          patientName={order.patient?.fullName}
-          results={order.results || []}
-        />
-      )}
-
       {/* AI-Generated Doctor Discussion Checklist */}
       {order && (
         <DoctorChecklistModal
@@ -574,12 +601,17 @@ export default function ReportDetail() {
         />
       )}
 
-      {/* Floating Global AI Copilot */}
+      {/* Floating Global AI Copilot (Unified Side Chat) */}
       {order && (
         <FloatingAICopilot
           orderId={order.id}
           orderNo={order.orderNo}
           patientName={order.patient?.fullName}
+          results={order.results || []}
+          isOpen={isSideChatOpen}
+          onToggle={(state) => setIsSideChatOpen(state)}
+          externalQuery={sideChatQuery}
+          onQueryHandled={() => setSideChatQuery('')}
         />
       )}
 

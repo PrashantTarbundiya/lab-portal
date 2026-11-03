@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { maskPhone, maskName } from '../lib/mask.js';
 import { writeLog } from '../lib/audit.js';
 import { getMessageStatus } from '../services/messaging.js';
@@ -383,7 +383,7 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
 });
 
 // POST /api/orders/:id/ask-ai
-router.post('/:id/ask-ai', authenticate, async (req, res) => {
+router.post('/:id/ask-ai', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { question, prompt: rawPrompt, lang = 'en' } = req.body;
@@ -526,7 +526,7 @@ GUIDELINES FOR LABBY:
 });
 
 // POST /api/orders/ai/general-ask
-router.post('/ai/general-ask', authenticate, async (req, res) => {
+router.post('/ai/general-ask', optionalAuth, async (req, res) => {
   try {
     const { question, prompt: rawPrompt, lang = 'en' } = req.body;
     const userPrompt = (question || rawPrompt || '').trim();

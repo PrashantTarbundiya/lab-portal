@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function VisualRangeGauge({ parameter, value, unit, refRangeRaw, flag }) {
+export default function VisualRangeGauge({ parameter, value, unit, refRangeRaw, flag, onAskLabby = null }) {
   // Parse numeric values
   const valNum = parseFloat(value);
   let lowNum = null;
@@ -71,13 +71,24 @@ export default function VisualRangeGauge({ parameter, value, unit, refRangeRaw, 
           <h4 className="font-bold text-gray-900 text-sm tracking-tight">{parameter}</h4>
           <span className="text-[11px] text-gray-400">Standard range: {refRangeRaw || 'Reference unavailable'}</span>
         </div>
-        <div className="text-right flex items-center gap-2">
-          <span className="text-base font-black text-gray-900 tabular-nums">
+        <div className="text-right flex items-center gap-1.5 sm:gap-2">
+          <span className="text-sm sm:text-base font-black text-gray-900 tabular-nums">
             {value} <span className="text-xs font-normal text-gray-500">{unit}</span>
           </span>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeStyle}`}>
             {isCritical ? 'CRITICAL' : isLow ? 'LOW' : isHigh ? 'HIGH' : 'NORMAL'}
           </span>
+          {onAskLabby && (
+            <button
+              type="button"
+              onClick={() => onAskLabby(parameter, value, unit, flag)}
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0F5E57] hover:text-white bg-teal-50 hover:bg-[#0F5E57] border border-teal-200 px-2 py-0.5 rounded-lg transition cursor-pointer shadow-2xs ml-1"
+              title={`Ask Labby about ${parameter}`}
+            >
+              <span>🧪</span>
+              <span className="hidden sm:inline">Ask Labby</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -122,4 +133,3 @@ export default function VisualRangeGauge({ parameter, value, unit, refRangeRaw, 
     </div>
   );
 }
-

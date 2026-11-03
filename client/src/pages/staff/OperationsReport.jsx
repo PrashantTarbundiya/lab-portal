@@ -4,6 +4,7 @@ import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/Card';
 import DemoRibbon from '../../components/DemoRibbon';
+import StaffNavbar from '../../components/StaffNavbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function OperationsReport() {
@@ -89,47 +90,7 @@ export default function OperationsReport() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <DemoRibbon />
-
-      {/* Staff Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#0F5E57] flex items-center justify-center text-white font-bold text-sm">
-                  A
-                </div>
-                <span className="font-bold text-gray-900 text-base">Lab Console</span>
-              </div>
-
-              <nav className="hidden md:flex space-x-1">
-                <Link to="/staff" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                  Orders
-                </Link>
-                <Link to="/staff/import" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                  LIS Import
-                </Link>
-                <Link to="/staff/tasks" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                  Tasks & Flags
-                </Link>
-                <Link to="/staff/access-log" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                  Access Log
-                </Link>
-                <Link to="/staff/operations" className="px-3 py-2 rounded-lg text-sm font-semibold bg-[#0F5E57]/10 text-[#0F5E57]">
-                  Operations Report
-                </Link>
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500 hidden sm:inline">{user?.email}</span>
-              <button onClick={() => { logout(); }} className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5">
-                Log out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <StaffNavbar />
 
       {/* Main Container */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">

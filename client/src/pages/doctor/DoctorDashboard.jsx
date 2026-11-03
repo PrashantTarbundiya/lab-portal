@@ -168,10 +168,17 @@ export default function DoctorDashboard() {
                 Logged in as <strong className="text-gray-800">{user?.email || 'Dr. S. Ramanaiah'}</strong>
               </span>
               <button
-                onClick={() => { logout(); }}
-                className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50"
+                type="button"
+                onClick={async () => {
+                  await logout();
+                  navigate('/staff/login');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
               >
-                Log out
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Log out</span>
               </button>
             </div>
           </div>

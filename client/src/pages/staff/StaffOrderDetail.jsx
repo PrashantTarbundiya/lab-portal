@@ -11,6 +11,7 @@ import MaskedPhone from '../../components/MaskedPhone';
 import DemoRibbon from '../../components/DemoRibbon';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorState from '../../components/ErrorState';
+import StaffNavbar from '../../components/StaffNavbar';
 
 export default function StaffOrderDetail() {
   const { id } = useParams();
@@ -179,26 +180,25 @@ export default function StaffOrderDetail() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <DemoRibbon />
+      <StaffNavbar />
 
-      {/* Top Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <button
-              onClick={() => navigate('/staff')}
-              className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
-            >
-              ← Back to Console
-            </button>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono text-gray-500">
-                Order: #{order.orderNo}
-              </span>
-              <StatusChip status={order.status} isHeld={!!openCallback} />
-            </div>
+      {/* Subheader / Breadcrumb */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <button
+            onClick={() => navigate('/staff')}
+            className="text-sm font-semibold text-gray-600 hover:text-[#0F5E57] flex items-center gap-1.5 transition"
+          >
+            ← Back to Orders Console
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono text-gray-500">
+              Order: #{order.orderNo}
+            </span>
+            <StatusChip status={order.status} isHeld={!!openCallback} />
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main 2-Column Desktop Grid */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
@@ -341,13 +341,26 @@ export default function StaffOrderDetail() {
               </h3>
 
               <div className="space-y-2.5">
+                {order.patient?.account?.mobileE164 && (
+                  <a
+                    href={`https://wa.me/${order.patient.account.mobileE164.replace('+', '')}?text=${encodeURIComponent(
+                      `Hello ${order.patient?.fullName || 'Patient'}, your diagnostic test report (${order.orderNo}) from Company A Diagnostics is ready. You can securely view your digital report and download the hospital-grade PDF here: ${window.location.origin}/report/${order.linkTokens?.[0]?.token || ''}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-[#25D366] hover:bg-[#20ba59] shadow-sm transition"
+                  >
+                    <span>📱</span> Send via WhatsApp (Free wa.me)
+                  </a>
+                )}
+
                 <Button
                   variant="primary"
                   fullWidth
                   onClick={() => setIsResendModalOpen(true)}
                   className="font-semibold text-sm"
                 >
-                  🔄 Resend Link (WhatsApp)
+                  🔄 Resend Link (Queue Message)
                 </Button>
 
                 <Button

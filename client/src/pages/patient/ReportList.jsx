@@ -6,7 +6,7 @@ import { api } from '../../utils/api';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import StatusChip from '../../components/StatusChip';
-import LangSwitch from '../../components/LangSwitch';
+import PatientNavbar from '../../components/PatientNavbar';
 import DemoRibbon from '../../components/DemoRibbon';
 import EmptyState from '../../components/EmptyState';
 import ErrorState from '../../components/ErrorState';
@@ -91,29 +91,7 @@ export default function ReportList() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
       <DemoRibbon />
-
-      <header className="p-4 flex justify-between items-center max-w-lg w-full mx-auto">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/profiles')}
-            className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center gap-1"
-          >
-            ← Profiles
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <LangSwitch />
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            className="text-xs text-gray-500 hover:text-gray-800 font-medium px-2 py-1"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
+      <PatientNavbar backTo="/profiles" backLabel="Profiles" />
 
       <main className="flex-1 px-4 py-4 max-w-lg w-full mx-auto space-y-4">
         <div className="flex justify-between items-end pb-2">

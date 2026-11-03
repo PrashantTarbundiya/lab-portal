@@ -4,8 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { api } from '../../utils/api';
 import Card from '../../components/Card';
-import LangSwitch from '../../components/LangSwitch';
 import DemoRibbon from '../../components/DemoRibbon';
+import PatientNavbar from '../../components/PatientNavbar';
 import { SkeletonCard } from '../../components/Skeleton';
 import ErrorState from '../../components/ErrorState';
 
@@ -52,24 +52,7 @@ export default function ProfilePicker() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
       <DemoRibbon />
-
-      <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto">
-        <span className="font-bold text-gray-900 tracking-tight text-base">
-          {t('appName')}
-        </span>
-        <div className="flex items-center gap-2">
-          <LangSwitch />
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            className="text-xs text-gray-500 hover:text-gray-800 font-medium px-2 py-1"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
+      <PatientNavbar />
 
       <main className="flex-1 px-4 py-6 max-w-md w-full mx-auto">
         <div className="mb-6">

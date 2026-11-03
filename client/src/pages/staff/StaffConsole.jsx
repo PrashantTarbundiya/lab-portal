@@ -8,6 +8,7 @@ import Badge from '../../components/Badge';
 import Table from '../../components/Table';
 import StatusChip from '../../components/StatusChip';
 import DemoRibbon from '../../components/DemoRibbon';
+import StaffNavbar from '../../components/StaffNavbar';
 import { SkeletonTable } from '../../components/Skeleton';
 import ErrorState from '../../components/ErrorState';
 
@@ -182,88 +183,43 @@ export default function StaffConsole() {
       header: 'Action',
       accessor: 'actions',
       align: 'right',
-      render: (r) => (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate(`/staff/orders/${r.id}`)}
-          className="text-xs"
-        >
-          Open →
-        </Button>
-      ),
+      render: (r) => {
+        const rawPhone = (r.patientPhoneMasked || '').replace(/\D/g, '');
+        const waText = encodeURIComponent(
+          `Hello ${r.patientName}, your test report (${r.orderNo}) from Company A Diagnostics is ready. View it here: ${window.location.origin}/reports/${r.id} (OTP verification required, link valid 72 hours).`
+        );
+        const waUrl = rawPhone.length >= 10 ? `https://wa.me/91${rawPhone.slice(-10)}?text=${waText}` : `https://wa.me/?text=${waText}`;
+
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-2 py-1 rounded-md transition-colors"
+              title="Open WhatsApp chat with prefilled report link (Free)"
+            >
+              <span>📱</span>
+              <span className="hidden sm:inline">WhatsApp</span>
+            </a>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/staff/orders/${r.id}`)}
+              className="text-xs"
+            >
+              Open →
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <DemoRibbon />
-
-      {/* Staff Header & Navigation */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#0F5E57] flex items-center justify-center text-white font-bold text-sm">
-                  A
-                </div>
-                <span className="font-bold text-gray-900 text-base">
-                  Lab Console
-                </span>
-              </div>
-
-              <nav className="hidden md:flex space-x-1">
-                <Link
-                  to="/staff"
-                  className="px-3 py-2 rounded-lg text-sm font-semibold bg-[#0F5E57]/10 text-[#0F5E57]"
-                >
-                  Orders
-                </Link>
-                <Link
-                  to="/staff/import"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  LIS Import
-                </Link>
-                <Link
-                  to="/staff/tasks"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  Tasks & Flags
-                </Link>
-                <Link
-                  to="/staff/access-log"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  Access Log
-                </Link>
-                <Link
-                  to="/staff/operations"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  Operations Report
-                </Link>
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500 hidden sm:inline">
-                Signed in as <strong className="text-gray-700">{user?.email || 'Staff'}</strong>
-              </span>
-              <button
-                onClick={() => {
-                  logout();
-                  navigate('/staff/login');
-                }}
-                className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <StaffNavbar />
 
       {/* Main Body */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">

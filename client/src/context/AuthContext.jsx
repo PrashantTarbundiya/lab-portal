@@ -53,8 +53,15 @@ export function AuthProvider({ children }) {
     restoreSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
-        if (newSession) {
+      async (event, newSession) => {
+        if (event === 'SIGNED_OUT' || !newSession) {
+          localStorage.removeItem('portal_token');
+          sessionStorage.clear();
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          setAccount(null);
+        } else {
           setSession(newSession);
           setUser(newSession.user);
           await fetchAccount(newSession.access_token);
@@ -137,13 +144,17 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     localStorage.removeItem('portal_token');
-    try {
-      await supabase.auth.signOut();
-    } catch {}
-    setUser(null);
+    sessionStorage.clear();
     setSession(null);
+    setUser(null);
     setRole(null);
     setAccount(null);
+    try {
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise(r => setTimeout(r, 200))
+      ]);
+    } catch {}
   };
 
   const normalizedRole = (role || '').toUpperCase();

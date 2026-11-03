@@ -8,7 +8,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
-import LangSwitch from '../../components/LangSwitch';
+import PatientNavbar from '../../components/PatientNavbar';
 import DemoRibbon from '../../components/DemoRibbon';
 import ErrorState from '../../components/ErrorState';
 import { SkeletonText } from '../../components/Skeleton';
@@ -166,16 +166,7 @@ export default function ReportDetail() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
       <DemoRibbon />
-
-      <header className="p-4 flex justify-between items-center max-w-xl w-full mx-auto">
-        <button
-          onClick={() => navigate('/reports')}
-          className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center gap-1"
-        >
-          ← {t('reportsTitle')}
-        </button>
-        <LangSwitch />
-      </header>
+      <PatientNavbar backTo="/reports" backLabel="Reports" />
 
       <main className="flex-1 px-4 py-4 max-w-xl w-full mx-auto space-y-5">
         {loading ? (

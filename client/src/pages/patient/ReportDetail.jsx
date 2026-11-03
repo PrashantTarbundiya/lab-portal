@@ -13,6 +13,11 @@ import DemoRibbon from '../../components/DemoRibbon';
 import ErrorState from '../../components/ErrorState';
 import { SkeletonText } from '../../components/Skeleton';
 import AskAIModal from '../../components/AskAIModal';
+import VisualRangeGauge from '../../components/VisualRangeGauge';
+import VoiceReadButton from '../../components/VoiceReadButton';
+import DoctorChecklistModal from '../../components/DoctorChecklistModal';
+import HealthScorecard from '../../components/HealthScorecard';
+import FloatingAICopilot from '../../components/FloatingAICopilot';
 
 export default function ReportDetail() {
   const { id } = useParams();
@@ -20,8 +25,10 @@ export default function ReportDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
-  const [showAllResults, setShowAllResults] = useState(false);
+  const [showAllResults, setShowAllResults] = useState(true);
+  const [viewMode, setViewMode] = useState('gauges'); // 'gauges' | 'table'
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
 
   // Flag Modal state
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -203,6 +210,15 @@ export default function ReportDetail() {
               )}
             </div>
 
+            {/* Diagnostic Health Scorecard */}
+            <HealthScorecard
+              results={order.results || []}
+              orderNo={order.orderNo}
+              patientName={order.patient?.fullName}
+              onOpenChecklist={() => setIsChecklistModalOpen(true)}
+              onOpenAI={() => setIsAIModalOpen(true)}
+            />
+
             {/* "What this means" Summary Section */}
             <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -288,6 +304,11 @@ export default function ReportDetail() {
                         >
                           {item.text}
                         </p>
+
+                        <div className="pt-2 flex items-center justify-between border-t border-amber-200/50">
+                          <VoiceReadButton text={item.text} lang={lang} />
+                          <span className="text-[10px] text-gray-400 font-medium">Bilingual Audio Voice</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -323,46 +344,96 @@ export default function ReportDetail() {
               📥 {t('downloadPdf')}
             </Button>
 
-            {/* Collapsible "All Results" Table */}
-            <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-3">
-              <button
-                type="button"
-                onClick={() => setShowAllResults(!showAllResults)}
-                className="w-full flex justify-between items-center text-left focus:outline-none"
-              >
-                <h3 className="text-base font-bold text-gray-900">
-                  {t('allResults')} ({order.results?.length || 0})
-                </h3>
-                <span className="text-gray-400 font-bold text-sm">
-                  {showAllResults ? '▲ Hide' : '▼ Show'}
-                </span>
-              </button>
+            {/* Detailed Test Results with Visual Range Gauges & Table View */}
+            <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {t('allResults')} ({order.results?.length || 0})
+                  </h3>
+                  <span className="text-[11px] text-gray-400">Biological reference intervals & status</span>
+                </div>
 
-              {showAllResults && (
-                <div className="pt-3 border-t border-gray-100 overflow-x-auto">
+                {/* View Switcher Toggle */}
+                <div className="inline-flex p-1 bg-gray-100 rounded-xl text-xs font-semibold self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('gauges')}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      viewMode === 'gauges'
+                        ? 'bg-white text-[#0F5E57] shadow-2xs font-bold'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    <span>📊</span>
+                    <span>Visual Gauges</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('table')}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      viewMode === 'table'
+                        ? 'bg-white text-[#0F5E57] shadow-2xs font-bold'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    <span>📋</span>
+                    <span>Table View</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* View 1: Visual Biological Spectrum Gauges */}
+              {viewMode === 'gauges' && (
+                <div className="space-y-3 pt-1">
+                  {order.results?.map((r, idx) => (
+                    <VisualRangeGauge
+                      key={idx}
+                      parameter={r.parameter}
+                      value={r.value}
+                      unit={r.unit}
+                      refRangeRaw={r.refRangeRaw}
+                      flag={r.flag}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* View 2: Traditional Clinical Table */}
+              {viewMode === 'table' && (
+                <div className="pt-1 overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-gray-200 text-gray-500 font-semibold uppercase">
-                        <th className="py-2">{t('parameter')}</th>
-                        <th className="py-2 text-right">{t('result')}</th>
-                        <th className="py-2 text-right">{t('refRange')}</th>
+                        <th className="py-2.5">{t('parameter')}</th>
+                        <th className="py-2.5 text-right">{t('result')}</th>
+                        <th className="py-2.5 text-right">{t('refRange')}</th>
+                        <th className="py-2.5 text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 tabular-nums">
                       {order.results?.map((r, idx) => {
-                        const isAbnormal = r.flag && r.flag !== 'NORMAL' && r.flag !== 'UNKNOWN';
+                        const isCritical = (r.flag || '').includes('CRITICAL');
+                        const isAbnormal = r.flag === 'LOW' || r.flag === 'HIGH';
                         return (
-                          <tr key={idx} className={isAbnormal ? 'bg-amber-50/50' : ''}>
+                          <tr key={idx} className={isCritical ? 'bg-red-50/70 font-semibold' : isAbnormal ? 'bg-amber-50/50' : ''}>
                             <td className="py-2.5 font-medium text-gray-900">
                               {r.parameter}
                             </td>
                             <td className="py-2.5 text-right font-semibold">
-                              <span className={isAbnormal ? 'text-amber-800 font-bold' : 'text-gray-700'}>
+                              <span className={isCritical ? 'text-red-700 font-black' : isAbnormal ? 'text-amber-800 font-bold' : 'text-gray-700'}>
                                 {r.value} {r.unit || ''}
                               </span>
                             </td>
                             <td className="py-2.5 text-right text-gray-500">
                               {r.refRangeRaw || '—'}
+                            </td>
+                            <td className="py-2.5 text-center">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                isCritical ? 'bg-red-100 text-red-800' : isAbnormal ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                              }`}>
+                                {r.flag || 'NORMAL'}
+                              </span>
                             </td>
                           </tr>
                         );
@@ -488,6 +559,27 @@ export default function ReportDetail() {
           orderNo={order.orderNo}
           patientName={order.patient?.fullName}
           results={order.results || []}
+        />
+      )}
+
+      {/* AI-Generated Doctor Discussion Checklist */}
+      {order && (
+        <DoctorChecklistModal
+          isOpen={isChecklistModalOpen}
+          onClose={() => setIsChecklistModalOpen(false)}
+          orderId={order.id}
+          orderNo={order.orderNo}
+          patientName={order.patient?.fullName}
+          results={order.results || []}
+        />
+      )}
+
+      {/* Floating Global AI Copilot */}
+      {order && (
+        <FloatingAICopilot
+          orderId={order.id}
+          orderNo={order.orderNo}
+          patientName={order.patient?.fullName}
         />
       )}
 

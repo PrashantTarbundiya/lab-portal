@@ -11,6 +11,7 @@ import DemoRibbon from '../../components/DemoRibbon';
 import EmptyState from '../../components/EmptyState';
 import ErrorState from '../../components/ErrorState';
 import { SkeletonCard } from '../../components/Skeleton';
+import FloatingAICopilot from '../../components/FloatingAICopilot';
 
 export default function ReportList() {
   const [orders, setOrders] = useState([]);
@@ -184,6 +185,9 @@ export default function ReportList() {
         <span className="mx-2">•</span>
         <span>Company A Diagnostics</span>
       </footer>
+
+      {/* Floating Global AI Copilot */}
+      <FloatingAICopilot />
     </div>
   );
 }

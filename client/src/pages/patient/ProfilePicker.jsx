@@ -8,6 +8,7 @@ import DemoRibbon from '../../components/DemoRibbon';
 import PatientNavbar from '../../components/PatientNavbar';
 import { SkeletonCard } from '../../components/Skeleton';
 import ErrorState from '../../components/ErrorState';
+import FloatingAICopilot from '../../components/FloatingAICopilot';
 
 export default function ProfilePicker() {
   const [profiles, setProfiles] = useState([]);
@@ -140,6 +141,9 @@ export default function ProfilePicker() {
       <footer className="p-4 text-center text-xs text-gray-400 max-w-md w-full mx-auto">
         <span>Company A Diagnostics • Family Health Records</span>
       </footer>
+
+      {/* Floating Global AI Copilot */}
+      <FloatingAICopilot />
     </div>
   );
 }

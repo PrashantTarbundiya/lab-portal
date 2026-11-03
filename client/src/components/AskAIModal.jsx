@@ -228,3 +228,4 @@ export default function AskAIModal({ isOpen, onClose, orderId, orderNo, patientN
     </Modal>
   );
 }
+

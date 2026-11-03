@@ -524,5 +524,84 @@ GUIDELINES:
   }
 });
 
+// POST /api/orders/ai/general-ask
+router.post('/ai/general-ask', authenticate, async (req, res) => {
+  try {
+    const { question, prompt: rawPrompt, lang = 'en' } = req.body;
+    const userPrompt = (question || rawPrompt || '').trim();
+
+    if (!userPrompt) {
+      return res.status(400).json({ error: 'Please provide a question' });
+    }
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
+    const langName = lang === 'te' ? 'Telugu (తెలుగు)' : lang === 'hi' ? 'Hindi (हिंदी)' : 'English';
+
+    const systemPrompt = `You are a clinical AI health assistant for Company A Diagnostics in Vijayawada, India.
+Answer the user's question clearly, helpfully, and empathetically in ${langName}.
+Guidelines:
+1. Provide accurate educational information regarding medical tests, parameters, fasting requirements, and general wellness.
+2. Maintain patient safety: Do not provide definitive diagnosis or prescribe drug doses.
+3. Always advise discussing specific concerns with their doctor.`;
+
+    let aiAnswer = null;
+
+    if (openRouterKey) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 18000);
+
+        const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openRouterKey}`,
+            'HTTP-Referer': 'https://isocodelabs.com',
+            'X-Title': 'Company A Diagnostic Portal',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.3,
+            max_tokens: 800,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (openRouterRes.ok) {
+          const data = await openRouterRes.json();
+          aiAnswer = data.choices?.[0]?.message?.content?.trim();
+        }
+      } catch (err) {
+        console.error('General AI ask error:', err.message);
+      }
+    }
+
+    if (!aiAnswer) {
+      if (lang === 'te') {
+        aiAnswer = `మీ ప్రశ్నకు ధన్యవాదాలు: "${userPrompt}"\n\nల్యాబ్ పరీక్షలు, ఉపవాస నియమాలు లేదా రక్త నమూనా సేకరణకు సంబంధించిన మరింత సమాచారం కొరకు మా ల్యాబ్ కేంద్రం లేదా మీ వైద్యుడిని సంప్రదించండి. మీ పరీక్ష నివేదికను పోర్టల్‌లో తెరవడం ద్వారా నిర్దిష్ట ఫలితాల విశ్లేషణను పొందవచ్చు.`;
+      } else {
+        aiAnswer = `Thank you for your question: "${userPrompt}".\n\nFor questions regarding laboratory tests, fasting requirements, or specimen collection, please consult our front-desk or your treating physician. You can also view your specific report in the portal to see custom AI analyses based on your biological values.`;
+      }
+    }
+
+    return res.json({
+      success: true,
+      question: userPrompt,
+      answer: aiAnswer,
+      model,
+    });
+  } catch (err) {
+    console.error('general-ask error:', err);
+    return res.status(500).json({ error: 'Failed to process AI question' });
+  }
+});
+
 export default router;
 

@@ -86,18 +86,12 @@ export function computeFlag(valueNum, parsedRange) {
       if (num > parsedRange.high) return 'HIGH';
       return 'NORMAL';
     }
-    case 'LT': {
-      if (num >= parsedRange.high) return 'HIGH';
-      return 'NORMAL';
-    }
+    case 'LT':
     case 'LTE': {
       if (num > parsedRange.high) return 'HIGH';
       return 'NORMAL';
     }
-    case 'GT': {
-      if (num <= parsedRange.low) return 'LOW';
-      return 'NORMAL';
-    }
+    case 'GT':
     case 'GTE': {
       if (num < parsedRange.low) return 'LOW';
       return 'NORMAL';

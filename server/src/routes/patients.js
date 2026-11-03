@@ -124,3 +124,4 @@ router.post('/withdraw-consent', authenticate, async (req, res) => {
 });
 
 export default router;
+

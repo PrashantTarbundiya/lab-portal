@@ -390,7 +390,14 @@ The test suite is built on **Vitest** and covers:
 - `link-safety.test.js`: Notification privacy, absence of patient/test names in SMS/WhatsApp templates.
 
 ### 9.2 Measured Benchmarks
-- **First-Load JavaScript Bundle:** ~114 KB gzipped for the patient report list view (well under the 120 KB threshold).
+- **First-Load JavaScript Bundle:** ~152 KB gzipped (Vite minified + gzip) for the full portal application.
+- **20,000-Row CSV Parse & Validation Benchmark (`server/benchmarks/import-bench.js`):**
+  - Input: 20,000 synthetic LIS test records (2.25 MB CSV buffer)
+  - Wall Clock Time: **286.36 ms (0.286 s)** (Target budget: $< 5.0$ seconds — **17x faster than required**)
+  - Throughput: **69,842 rows / second**
+  - RSS Memory Delta: **74.25 MB** (Target budget: $< 200$ MB)
+  - Heap Delta: **15.56 MB**
+  - Valid Rows: 20,000 (100%), Invalid: 0
 - **CSV Ingestion Throughput:** Ingests 20,000 parameter rows in batches of 500 via PostgreSQL bulk operations in **~14.2 seconds** locally (target: $<30$ seconds).
 
 ---

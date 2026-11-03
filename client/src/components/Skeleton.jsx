@@ -42,3 +42,4 @@ export function SkeletonText({ lines = 3 }) {
 export default function Skeleton({ className = 'h-4 w-full' }) {
   return <div className={`bg-gray-200 rounded animate-pulse ${className}`} />;
 }
+

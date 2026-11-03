@@ -121,3 +121,4 @@ router.post('/:id/resend-sms', authenticate, requireStaff, async (req, res) => {
 });
 
 export default router;
+

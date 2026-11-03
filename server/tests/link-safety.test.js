@@ -34,3 +34,4 @@ describe('Link Safety & Data Leak Prevention', () => {
     expect(masked).not.toContain('900000');
   });
 });
+

@@ -25,3 +25,4 @@ export default function LangSwitch({ className = '' }) {
     </div>
   );
 }
+

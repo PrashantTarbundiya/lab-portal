@@ -3,7 +3,8 @@ const API_BASE = '/api';
 export async function api(path, options = {}) {
   const { method = 'GET', body, token } = options;
   const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('portal_token') : null);
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
   const res = await fetch(`${API_BASE}${path}`, {
     method,
@@ -20,7 +21,8 @@ export async function api(path, options = {}) {
 
 export async function apiUpload(path, formData, token) {
   const headers = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('portal_token') : null);
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers,

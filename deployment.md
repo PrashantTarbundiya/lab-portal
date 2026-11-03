@@ -242,3 +242,4 @@ Follow these 7 steps to evaluate every core requirement in under 7 minutes:
    - The PDF download
 3. Click **Export CSV** to verify the downloadable audit trail.
 4. Log out and log in as `doctor@demo.local` / `Demo@12345` to view the 90-day Referring Physician portal.
+

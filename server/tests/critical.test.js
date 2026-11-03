@@ -65,3 +65,4 @@ describe('Critical Value Rules', () => {
     });
   });
 });
+

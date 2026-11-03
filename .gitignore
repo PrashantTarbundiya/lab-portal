@@ -27,9 +27,11 @@ npm-debug.log*
 # Test coverage
 coverage/
 
-# Prisma
+# Prisma & Database
 server/prisma/*.db
 server/prisma/*.db-journal
+.pgdata/
+*/.pgdata/
 
 # Misc
 *.tgz

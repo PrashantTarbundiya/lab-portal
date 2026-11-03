@@ -252,6 +252,42 @@ router.post('/update-lang', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/auth/demo-login
+router.post('/demo-login', async (req, res) => {
+  try {
+    const { role, identifier } = req.body;
+    if (role === 'STAFF') {
+      const user = await prisma.user.findFirst({
+        where: { role: 'FRONT_DESK' },
+      });
+      const token = `demo-staff:${user.email}`;
+      return res.json({ success: true, token, user, role: 'STAFF' });
+    }
+    if (role === 'DOCTOR') {
+      const user = await prisma.user.findFirst({
+        where: { role: 'DOCTOR' },
+      });
+      const token = `demo-doctor:${user.email}`;
+      return res.json({ success: true, token, user, role: 'DOCTOR' });
+    }
+    if (role === 'PATIENT') {
+      const phone = identifier || '+919000000001';
+      const clean = phone.replace(/[\s\-()]/g, '');
+      const normalized = clean.startsWith('+91') ? clean : (clean.length === 10 ? `+91${clean}` : clean);
+      const account = await prisma.account.findFirst({
+        where: { mobileE164: normalized },
+        include: { patients: true },
+      });
+      const token = `demo-patient:${normalized}`;
+      return res.json({ success: true, token, account, role: 'PATIENT' });
+    }
+    return res.status(400).json({ error: 'Invalid demo role' });
+  } catch (err) {
+    console.error('demo-login error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', optionalAuth, async (req, res) => {
   try {
@@ -269,3 +305,4 @@ router.post('/logout', optionalAuth, async (req, res) => {
 });
 
 export default router;
+

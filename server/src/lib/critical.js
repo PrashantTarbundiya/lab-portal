@@ -11,6 +11,8 @@ export const CRITICAL_RULES = [
   { parameter: 'Sodium', criticalLow: 120, criticalHigh: 160 },
   { parameter: 'Haemoglobin', criticalLow: 7.0, criticalHigh: 20.0 },
   { parameter: 'Glucose fasting', criticalLow: 40, criticalHigh: 450 },
+  { parameter: 'Fasting glucose', criticalLow: 40, criticalHigh: 450 },
+  { parameter: 'Glucose, fasting', criticalLow: 40, criticalHigh: 450 },
   { parameter: 'Platelet count', criticalLow: 20, criticalHigh: 1000 },
   { parameter: 'Calcium', criticalLow: 6.0, criticalHigh: 13.0 },
   { parameter: 'Creatinine', criticalLow: null, criticalHigh: 10.0 },
@@ -54,10 +56,10 @@ export function applyCriticalRule(parameter, valueNum, baseFlag) {
   const rule = findCriticalRule(parameter);
   if (!rule) return baseFlag;
 
-  if (baseFlag === 'LOW' && rule.criticalLow != null && valueNum <= rule.criticalLow) {
+  if (baseFlag === 'LOW' && rule.criticalLow != null && valueNum < rule.criticalLow) {
     return 'CRITICAL_LOW';
   }
-  if (baseFlag === 'HIGH' && rule.criticalHigh != null && valueNum >= rule.criticalHigh) {
+  if (baseFlag === 'HIGH' && rule.criticalHigh != null && valueNum > rule.criticalHigh) {
     return 'CRITICAL_HIGH';
   }
   return baseFlag;

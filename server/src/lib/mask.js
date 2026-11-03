@@ -13,8 +13,7 @@ export function maskPhone(e164) {
   const digits = e164.replace(/\D/g, '');
   if (digits.length < 4) return '••••••••••';
   const last4 = digits.slice(-4);
-  const masked = '•'.repeat(Math.max(digits.length - 4, 6));
-  return masked + last4;
+  return '••••••' + last4;
 }
 
 /**

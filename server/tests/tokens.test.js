@@ -32,3 +32,4 @@ describe('Secure Link Tokens', () => {
     expect(LINK_TTL_HOURS).toBe(72);
   });
 });
+

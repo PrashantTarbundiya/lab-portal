@@ -455,3 +455,4 @@ export default function ReportDetail() {
     </div>
   );
 }
+

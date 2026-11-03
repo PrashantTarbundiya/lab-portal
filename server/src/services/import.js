@@ -78,7 +78,7 @@ const rowSchema = z.object({
 export function validateRow(row, rowIndex) {
   const result = rowSchema.safeParse(row);
   if (result.success) {
-    return { valid: true, data: result.data };
+    return { valid: true, data: result.data, errors: [] };
   }
   const errors = result.error.issues.map(
     issue => `Row ${rowIndex}: ${issue.path.join('.')} — ${issue.message}`
@@ -95,7 +95,7 @@ export function validateRow(row, rowIndex) {
  * @param {string} raw
  * @returns {'PROCESSING'|'SIGNED'}
  */
-function normalizeStatus(raw) {
+export function normalizeStatus(raw) {
   const s = (raw || '').toLowerCase().trim();
   if (['ready', 'signed', 'ready (critical)'].includes(s)) return 'SIGNED';
   return 'PROCESSING';

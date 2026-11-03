@@ -236,15 +236,16 @@ export const BANNED_WORDS = [
  * @returns {{ valid: boolean, items?: Array, error?: string }}
  */
 export function validateAIOutput(output, inputParams) {
-  let items;
+  let parsed;
   try {
-    items = JSON.parse(output);
+    parsed = JSON.parse(output);
   } catch {
-    return { valid: false, error: 'AI output is not valid JSON' };
+    return { valid: false, error: 'Invalid JSON' };
   }
 
-  if (!Array.isArray(items)) {
-    return { valid: false, error: 'AI output is not an array' };
+  const items = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.items) ? parsed.items : null);
+  if (!items) {
+    return { valid: false, error: 'AI output is not an array or does not contain items array' };
   }
 
   // One item per parameter
@@ -255,8 +256,10 @@ export function validateAIOutput(output, inputParams) {
   // Collect all numeric values from input for cross-check
   const inputNumbers = new Set();
   for (const p of inputParams) {
-    const nums = String(p.value).match(/[\d.]+/g);
-    if (nums) nums.forEach(n => inputNumbers.add(n));
+    const valNums = String(p.value || '').match(/[\d.]+/g);
+    if (valNums) valNums.forEach(n => inputNumbers.add(n));
+    const rangeNums = String(p.range || '').match(/[\d.]+/g);
+    if (rangeNums) rangeNums.forEach(n => inputNumbers.add(n));
   }
 
   for (let i = 0; i < items.length; i++) {
@@ -275,23 +278,21 @@ export function validateAIOutput(output, inputParams) {
       return { valid: false, error: `Item ${i} text exceeds 500 characters` };
     }
 
-    // Banned words check
+    // Banned words check with word boundary to avoid matching "die" in "studies"
     const lowerText = item.text.toLowerCase();
     for (const word of BANNED_WORDS) {
-      if (lowerText.includes(word)) {
+      const regex = new RegExp(`\\b${word}`, 'i');
+      if (regex.test(lowerText)) {
         return { valid: false, error: `Item ${i} contains banned word: "${word}"` };
       }
     }
 
     // Every number in the text must exist in input data
-    const textNums = item.text.match(/[\d.]+/g) || [];
+    // Strip trailing punctuation like '.' or ','
+    const textNums = (item.text.match(/\b\d+(?:\.\d+)?\b/g) || []);
     for (const num of textNums) {
       if (!inputNumbers.has(num)) {
-        // Allow common non-data numbers like "2-3" in "past 2-3 months"
-        const n = parseFloat(num);
-        if (n > 10 && !inputNumbers.has(num)) {
-          return { valid: false, error: `Item ${i} contains number "${num}" not in input data` };
-        }
+        return { valid: false, error: `Invented number: item ${i} contains number "${num}" not in input data` };
       }
     }
   }
@@ -315,9 +316,9 @@ export function generateFallback(parameter, value, range, lang) {
   const templates = {
     en: `The value for ${parameter} is outside the usual range (${value}, usual ${range}). Please see your doctor.`,
     // needs native-speaker review
-    te: `${parameter} యొక్క విలువ సాధారణ పరిధి వెలుపల ఉంది (${value}, సాధారణ ${range}). దయచేసి మీ డాక్టర్‌ను చూడండి.`,
+    te: `${parameter} యొక్క విలువ సాధారణ పరిధి వెలుపల ఉంది (${value}, సాధారణ ${range}). దయచేసి మీ డాక్టర్‌ను సంప్రదించండి.`,
     // needs native-speaker review
-    hi: `${parameter} का मान सामान्य सीमा से बाहर है (${value}, सामान्य ${range})। कृपया अपने डॉक्टर से मिलें।`,
+    hi: `${parameter} का मान सामान्य सीमा से बाहर है (${value}, सामान्य ${range})। कृपया अपने डॉक्टर से परामर्श करें।`,
   };
 
   return templates[lang] || templates.en;

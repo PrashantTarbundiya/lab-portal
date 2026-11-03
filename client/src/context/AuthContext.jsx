@@ -74,30 +74,31 @@ export function AuthProvider({ children }) {
 
   const loginWithPhone = async (phone) => {
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({ phone });
-      if (error) throw error;
-      return data;
-    } catch {
-      // In demo mode or if Supabase SMS is not configured, succeed so OTP screen opens
+      const res = await api('/auth/otp/send', {
+        method: 'POST',
+        body: { phone },
+      });
+      return res;
+    } catch (err) {
+      console.warn('Backend OTP send fallback:', err);
       return { success: true };
     }
   };
 
   const verifyOtp = async (phone, otpToken) => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone,
-        token: otpToken,
-        type: 'sms',
+      const res = await api('/auth/otp/verify', {
+        method: 'POST',
+        body: { phone, otp: otpToken },
       });
-      if (error) throw error;
-      setSession(data.session);
-      setUser(data.user);
-      if (data.session) {
-        localStorage.setItem('portal_token', data.session.access_token);
-        await fetchAccount(data.session.access_token);
+      if (res.token) {
+        localStorage.setItem('portal_token', res.token);
+        setSession({ access_token: res.token });
+        setUser({ phone });
+        setAccount(res.account);
+        setRole('PATIENT');
       }
-      return data;
+      return res;
     } catch {
       // Fall back to demo login
       const res = await api('/auth/demo-login', {

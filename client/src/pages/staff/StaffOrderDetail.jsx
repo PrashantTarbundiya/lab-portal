@@ -12,6 +12,7 @@ import DemoRibbon from '../../components/DemoRibbon';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorState from '../../components/ErrorState';
 import StaffNavbar from '../../components/StaffNavbar';
+import AskAIModal from '../../components/AskAIModal';
 
 export default function StaffOrderDetail() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ export default function StaffOrderDetail() {
   const [isResendModalOpen, setIsResendModalOpen] = useState(false);
   const [resending, setResending] = useState(false);
   const [isCallbackModalOpen, setIsCallbackModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [callbackNote, setCallbackNote] = useState('');
   const [submittingCallback, setSubmittingCallback] = useState(false);
   const [activeTask, setActiveTask] = useState(null);
@@ -371,6 +373,15 @@ export default function StaffOrderDetail() {
                 >
                   💬 View Outbox Message
                 </Button>
+
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setIsAIModalOpen(true)}
+                  className="font-semibold text-sm border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
+                >
+                  🤖 Ask Clinical AI (Custom Prompt)
+                </Button>
               </div>
 
               <p className="text-[11px] text-gray-400 leading-tight">
@@ -550,6 +561,17 @@ export default function StaffOrderDetail() {
           ))}
         </div>
       </Modal>
+      {/* Ask AI Assistant Modal for Staff */}
+      {order && (
+        <AskAIModal
+          isOpen={isAIModalOpen}
+          onClose={() => setIsAIModalOpen(false)}
+          orderId={order.id}
+          orderNo={order.orderNo}
+          patientName={order.patient?.fullName}
+          results={order.results || []}
+        />
+      )}
     </div>
   );
 }

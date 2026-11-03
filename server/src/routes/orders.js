@@ -382,5 +382,147 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/orders/:id/ask-ai
+router.post('/:id/ask-ai', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question, prompt: rawPrompt, lang = 'en' } = req.body;
+    const userPrompt = (question || rawPrompt || '').trim();
+
+    if (!userPrompt) {
+      return res.status(400).json({ error: 'Please provide a question or prompt for the AI' });
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        results: true,
+        patient: { include: { account: true } },
+        doctor: true,
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Access control
+    if (req.dbAccount && order.patient.accountId !== req.dbAccount.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Prepare clinical results context
+    const resultsSummary = order.results.map((r) => {
+      return `- ${r.parameter}: ${r.value} ${r.unit || ''} (Standard Range: ${r.refRangeRaw || 'Not specified'}) [Flag: ${r.flag || 'NORMAL'}]`;
+    }).join('\n');
+
+    const langName = lang === 'te' ? 'Telugu (తెలుగు)' : lang === 'hi' ? 'Hindi (हिंदी)' : 'English';
+
+    const systemPrompt = `You are a clinical AI medical educator at Company A Diagnostics in Vijayawada, Andhra Pradesh, India.
+A user is reviewing a laboratory diagnostic test report and has a question.
+
+DIAGNOSTIC REPORT CONTEXT:
+Order Number: ${order.orderNo}
+Patient Name: ${order.patient.fullName} (${order.patient.sex || 'Unknown'}, Age: ${order.patient.dob ? Math.floor((new Date() - new Date(order.patient.dob)) / (365.25 * 24 * 3600 * 1000)) + ' years' : 'Adult'})
+Referring Doctor: ${order.doctor?.name || 'Self-referred'}
+Status: ${order.status}
+Critical Alert: ${order.hasCritical ? 'YES - Contains Critical Value(s)' : 'NO'}
+
+LABORATORY TEST RESULTS:
+${resultsSummary}
+
+GUIDELINES:
+1. Answer the user's question clearly, helpfully, and empathetically in ${langName}.
+2. Base your explanations strictly on the patient's lab results above.
+3. If they ask about abnormal or critical flags (like high potassium or low haemoglobin), explain biological functions and potential causes in simple terms.
+4. If there is a CRITICAL result (e.g. Potassium > 6.5 mmol/L), clearly advise immediate medical consultation.
+5. NEVER formulate a final definitive disease diagnosis or prescribe specific drug dosages.
+6. Always end with a brief recommendation to discuss these results with their treating doctor.`;
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
+
+    let aiAnswer = null;
+
+    if (openRouterKey) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 18000);
+
+        const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openRouterKey}`,
+            'HTTP-Referer': 'https://isocodelabs.com',
+            'X-Title': 'Company A Diagnostic Portal',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.3,
+            max_tokens: 800,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (openRouterRes.ok) {
+          const data = await openRouterRes.json();
+          aiAnswer = data.choices?.[0]?.message?.content?.trim();
+        } else {
+          console.error('OpenRouter ask-ai HTTP status:', openRouterRes.status);
+        }
+      } catch (err) {
+        console.error('OpenRouter ask-ai error:', err.message);
+      }
+    }
+
+    // Fallback if AI service is offline or rate limited
+    if (!aiAnswer) {
+      const abnormalList = order.results.filter(r => r.flag && r.flag !== 'NORMAL');
+      if (lang === 'te') {
+        aiAnswer = `మీ ల్యాబ్ రిపోర్ట్ ఆర్డర్ #${order.orderNo} విశ్లేషణ:\n\n` +
+          (abnormalList.length > 0
+            ? `మీ నివేదికలో ${abnormalList.map(r => `${r.parameter} (${r.value} ${r.unit})`).join(', ')} సాధారణ పరిధికి భిన్నంగా ఉన్నాయి. ${order.hasCritical ? 'ఈ నివేదికలో క్రిటికల్ స్థాయి ఫలితం ఉంది, కావున వెంటనే మీ డాక్టర్‌ను సంప్రదించండి.' : 'దయచేసి తదుపరి సలహా కొరకు మీ డాక్టర్‌ను సంప్రదించండి.'}`
+            : 'మీ అన్ని పరీక్ష ఫలితాలు సాధారణ పరిధిలో ఉన్నాయి. ఆరోగ్యకరమైన జీవనశైలిని కొనసాగించండి.') +
+          `\n\nప్రశ్న: "${userPrompt}"\nగమనిక: ఈ సమాచారం అవగాహన కోసం మాత్రమే. ఖచ్చితమైన చికిత్స కోసం మీ డాక్టర్‌ను సంప్రదించండి.`;
+      } else {
+        aiAnswer = `Clinical Assessment for Order #${order.orderNo}:\n\n` +
+          (abnormalList.length > 0
+            ? `Your test results show ${abnormalList.map(r => `${r.parameter}: ${r.value} ${r.unit} (${r.flag})`).join(', ')}. ` +
+              (order.hasCritical ? '⚠️ Note: One or more parameters require prompt clinical review. Please show this report to your treating physician immediately.' : 'These variations should be discussed with your physician along with your symptoms and medical history.')
+            : 'All recorded test parameters are within normal biological reference intervals.') +
+          `\n\nIn response to: "${userPrompt}"\n\nDisclaimer: This AI response is provided for patient education only and does not replace professional medical evaluation.`;
+      }
+    }
+
+    await writeLog({
+      actorType: req.actorType || 'PATIENT',
+      actorId: req.dbUser?.id || req.dbAccount?.id,
+      orderId: order.id,
+      action: 'REPORT_VIEW',
+      outcome: 'OK',
+      detail: `AI Query (${model}): ${userPrompt.slice(0, 60)}...`,
+      req,
+    });
+
+    return res.json({
+      success: true,
+      question: userPrompt,
+      answer: aiAnswer,
+      model,
+      orderNo: order.orderNo,
+    });
+  } catch (err) {
+    console.error('POST /api/orders/:id/ask-ai error:', err);
+    return res.status(500).json({ error: 'Failed to process AI question' });
+  }
+});
+
 export default router;
 

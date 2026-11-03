@@ -9,11 +9,13 @@ import StatusChip from '../../components/StatusChip';
 import DemoRibbon from '../../components/DemoRibbon';
 import { SkeletonTable } from '../../components/Skeleton';
 import ErrorState from '../../components/ErrorState';
+import AskAIModal from '../../components/AskAIModal';
 
 export default function DoctorDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedOrderForAI, setSelectedOrderForAI] = useState(null);
   const { token, logout, user } = useAuth();
 
   const fetchDoctorOrders = async () => {
@@ -127,18 +129,27 @@ export default function DoctorDashboard() {
       render: (r) => <StatusChip status={r.status} />,
     },
     {
-      header: 'Report',
+      header: 'Actions',
       accessor: 'action',
       align: 'right',
       render: (r) => (
-        <a
-          href={`/api/orders/${r.id}/pdf`}
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-[#0F5E57] hover:underline font-bold"
-        >
-          View PDF ↗
-        </a>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectedOrderForAI(r)}
+            className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded font-bold transition cursor-pointer"
+          >
+            <span>🤖</span> Ask AI
+          </button>
+          <a
+            href={`/api/orders/${r.id}/pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-[#0F5E57] hover:underline font-bold"
+          >
+            PDF ↗
+          </a>
+        </div>
       ),
     },
   ];
@@ -217,6 +228,17 @@ export default function DoctorDashboard() {
           />
         )}
       </main>
+
+      {/* Ask AI Assistant Modal for Doctors */}
+      {selectedOrderForAI && (
+        <AskAIModal
+          isOpen={!!selectedOrderForAI}
+          onClose={() => setSelectedOrderForAI(null)}
+          orderId={selectedOrderForAI.id}
+          orderNo={selectedOrderForAI.orderNo}
+          patientName={selectedOrderForAI.patientName}
+        />
+      )}
 
       <footer className="p-4 text-center text-xs text-gray-400">
         <span>Company A Diagnostics • Referring Physician Network</span>

@@ -252,6 +252,101 @@ router.post('/update-lang', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/auth/otp/send
+router.post('/otp/send', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone number required' });
+    }
+    const normalized = normalizeMobile(phone);
+    if (!normalized) {
+      return res.status(400).json({ error: 'Invalid Indian mobile number' });
+    }
+
+    console.log(`[OTP] Generated verification OTP 123456 for ${normalized}`);
+
+    return res.json({
+      success: true,
+      message: 'OTP sent successfully',
+      phone: normalized,
+      demoOtp: '123456',
+    });
+  } catch (err) {
+    console.error('otp/send error:', err);
+    return res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+// POST /api/auth/otp/verify
+router.post('/otp/verify', async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ error: 'Phone number and OTP required' });
+    }
+    const normalized = normalizeMobile(phone);
+    if (!normalized) {
+      return res.status(400).json({ error: 'Invalid Indian mobile number' });
+    }
+
+    // Validate OTP (accept '123456' for verification)
+    if (otp.trim() !== '123456') {
+      return res.status(400).json({ error: 'Invalid OTP code. Please enter 123456.' });
+    }
+
+    const mobileH = hashMobile(normalized);
+
+    let account = await prisma.account.findFirst({
+      where: {
+        OR: [
+          { mobileE164: normalized },
+          { mobileHash: mobileH },
+        ],
+      },
+      include: { patients: true },
+    });
+
+    if (!account) {
+      account = await prisma.account.create({
+        data: {
+          mobileE164: normalized,
+          mobileHash: mobileH,
+          preferredLang: 'en',
+          patients: {
+            create: {
+              fullName: 'Patient',
+              relation: 'SELF',
+            },
+          },
+        },
+        include: { patients: true },
+      });
+    }
+
+    const token = `demo-patient:${normalized}`;
+
+    await writeLog({
+      actorType: 'PATIENT',
+      accountId: account.id,
+      action: 'LOGIN',
+      outcome: 'OK',
+      detail: `OTP verified for ${normalized}`,
+      req,
+    });
+
+    return res.json({
+      success: true,
+      token,
+      account,
+      role: 'PATIENT',
+    });
+  } catch (err) {
+    console.error('otp/verify error:', err);
+    return res.status(500).json({ error: 'Failed to verify OTP' });
+  }
+});
+
 // POST /api/auth/demo-login
 router.post('/demo-login', async (req, res) => {
   try {

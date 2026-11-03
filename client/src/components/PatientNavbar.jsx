@@ -61,3 +61,4 @@ export default function PatientNavbar({ backTo, backLabel }) {
     </header>
   );
 }
+

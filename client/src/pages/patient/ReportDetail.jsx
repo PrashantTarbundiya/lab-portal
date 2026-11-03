@@ -12,6 +12,7 @@ import PatientNavbar from '../../components/PatientNavbar';
 import DemoRibbon from '../../components/DemoRibbon';
 import ErrorState from '../../components/ErrorState';
 import { SkeletonText } from '../../components/Skeleton';
+import AskAIModal from '../../components/AskAIModal';
 
 export default function ReportDetail() {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export default function ReportDetail() {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [showAllResults, setShowAllResults] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   // Flag Modal state
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -203,7 +205,7 @@ export default function ReportDetail() {
 
             {/* "What this means" Summary Section */}
             <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-bold text-gray-900">
                     {t('whatThisMeans')}
@@ -214,6 +216,13 @@ export default function ReportDetail() {
                     </span>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAIModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-[#0F5E57] hover:from-emerald-700 hover:to-[#0b4742] text-white text-xs font-bold shadow-sm transition cursor-pointer"
+                >
+                  <span>🤖</span> Ask AI (Custom Prompt)
+                </button>
               </div>
 
               {/* CRITICAL VALUE PATH — calm notice, NO summary */}
@@ -363,6 +372,36 @@ export default function ReportDetail() {
                 </div>
               )}
             </div>
+
+            {/* Interactive Ask AI Feature Card */}
+            <div className="bg-gradient-to-br from-[#0F5E57] to-teal-800 text-white rounded-2xl p-5 shadow-sm space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🤖</span>
+                    <h3 className="font-bold text-base">Ask AI About Your Report</h3>
+                  </div>
+                  <p className="text-xs text-teal-100 leading-relaxed max-w-md">
+                    Have questions about your test results? Ask custom questions or choose quick prompts in English, Telugu, or Hindi.
+                  </p>
+                </div>
+                <span className="text-[10px] bg-teal-900/60 text-teal-200 border border-teal-600/50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  NVIDIA Nemotron 3.5
+                </span>
+              </div>
+              <div className="pt-1 flex flex-wrap gap-2 items-center justify-between">
+                <span className="text-[11px] text-teal-200/90 italic">
+                  💡 Type any custom prompt or clinical question
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAIModalOpen(true)}
+                  className="px-4 py-2 bg-white text-[#0F5E57] hover:bg-teal-50 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  💬 Open AI Assistant →
+                </button>
+              </div>
+            </div>
           </>
         ) : null}
       </main>
@@ -439,6 +478,18 @@ export default function ReportDetail() {
           </div>
         </form>
       </Modal>
+
+      {/* Ask AI Interactive Modal with Custom Prompt */}
+      {order && (
+        <AskAIModal
+          isOpen={isAIModalOpen}
+          onClose={() => setIsAIModalOpen(false)}
+          orderId={order.id}
+          orderNo={order.orderNo}
+          patientName={order.patient?.fullName}
+          results={order.results || []}
+        />
+      )}
 
       <footer className="p-4 text-center text-xs text-gray-400 max-w-xl w-full mx-auto">
         <span>Company A Diagnostics • Secure Report Delivery</span>

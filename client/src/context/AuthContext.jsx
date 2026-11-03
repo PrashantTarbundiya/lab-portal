@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
 
   const fetchAccount = useCallback(async (accessToken) => {
     try {
+      if (!accessToken) return null;
       const data = await api('/auth/me', { token: accessToken });
       const r = (data.role || data.type || '').toUpperCase();
       setRole(r);
@@ -20,6 +21,10 @@ export function AuthProvider({ children }) {
       if (data.user) setUser(data.user);
       return data;
     } catch {
+      // Invalidate invalid/expired token so 401 is not repeated
+      localStorage.removeItem('portal_token');
+      setSession(null);
+      setUser(null);
       setRole(null);
       setAccount(null);
       return null;

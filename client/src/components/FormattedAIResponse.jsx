@@ -197,3 +197,4 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
 
   return <div className={`formatted-ai-response space-y-1 ${className}`}>{elements}</div>;
 }
+

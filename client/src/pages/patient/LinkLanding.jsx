@@ -72,6 +72,10 @@ export default function LinkLanding() {
         body: { otp: code },
       });
 
+      if (res.token) {
+        localStorage.setItem('portal_token', res.token);
+      }
+
       if (res.orderId) {
         navigate(`/reports/${res.orderId}`);
       } else {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/Card';
@@ -17,6 +18,7 @@ export default function DoctorDashboard() {
   const [error, setError] = useState('');
   const [selectedOrderForAI, setSelectedOrderForAI] = useState(null);
   const { token, logout, user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchDoctorOrders = async () => {
     try {

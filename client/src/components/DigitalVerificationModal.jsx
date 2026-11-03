@@ -99,3 +99,4 @@ export default function DigitalVerificationModal({ isOpen, onClose, orderNo, pat
     </Modal>
   );
 }
+

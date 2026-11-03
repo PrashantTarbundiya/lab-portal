@@ -188,6 +188,7 @@ router.post('/:token/verify', async (req, res) => {
       orderId: link.orderId,
       accountId: link.accountId,
       session: sessionData,
+      token: sessionData?.access_token || `demo-patient:${link.account.mobileE164}`,
     });
   } catch (err) {
     console.error('POST /api/links/:token/verify error:', err);

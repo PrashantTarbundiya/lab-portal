@@ -12,7 +12,7 @@ import StaffNavbar from '../../components/StaffNavbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function TasksPage() {
-  const [activeTab, setActiveTab] = useState('CALLBACKS'); // CALLBACKS | WRONG_NUMBER | MOBILE_CHANGE | CONSENT_WITHDRAWAL | FLAGS | PATHOLOGIST_SAMPLE
+  const [activeTab, setActiveTab] = useState('CRITICAL_CALLBACK'); // CRITICAL_CALLBACK | WRONG_NUMBER | MOBILE_CHANGE | CONSENT_WITHDRAWAL | FLAGS | PATHOLOGIST_SAMPLE
   const [tasks, setTasks] = useState([]);
   const [flags, setFlags] = useState([]);
   const [sampleSummaries, setSampleSummaries] = useState([]);

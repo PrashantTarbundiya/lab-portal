@@ -21,11 +21,11 @@ export default function Field({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-sm font-medium text-gray-700 flex items-center justify-between"
+          className="text-xs font-mono font-bold text-slate-300 flex items-center justify-between"
         >
           <span>
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-rose-400 ml-1">*</span>}
           </span>
         </label>
       )}
@@ -39,20 +39,20 @@ export default function Field({
         required={required}
         inputMode={inputMode}
         autoComplete={autoComplete}
-        className={`w-full rounded-lg border px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed ${
+        className={`w-full rounded-2xl border px-4 py-3 text-sm text-white bg-[#07151f]/90 placeholder-slate-400 focus:outline-none focus:ring-1 transition-colors shadow-inner disabled:opacity-50 disabled:cursor-not-allowed ${
           error
-            ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-            : 'border-gray-300 focus:border-[#0F5E57] focus:ring-[#0F5E57]/20'
+            ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-400'
+            : 'border-white/20 focus:border-emerald-400 focus:ring-emerald-400'
         }`}
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-600 font-medium" role="alert" aria-live="polite">
+        <p className="text-xs text-rose-400 font-medium" role="alert" aria-live="polite">
           {error}
         </p>
       )}
       {hint && !error && (
-        <p className="text-xs text-gray-500">{hint}</p>
+        <p className="text-xs text-slate-400">{hint}</p>
       )}
     </div>
   );

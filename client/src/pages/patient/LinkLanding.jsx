@@ -60,27 +60,32 @@ export default function LinkLanding() {
     e.preventDefault();
     const code = otp.join('');
     if (code.length < 6) {
-      setError(t('otpRequired'));
+      setError(t('otpIncomplete') || 'Please enter all 6 digits');
       return;
     }
 
     try {
       setSubmitting(true);
       setError('');
-      const res = await api(`/links/${token}/verify`, {
+      const res = await api(`/links/${token}/verify-otp`, {
         method: 'POST',
         body: { otp: code },
       });
 
-      if (res.token) {
-        localStorage.setItem('portal_token', res.token);
+      // If consent needed, route to consent gate
+      if (res.consentRequired) {
+        navigate(`/consent`, {
+          state: {
+            token,
+            orderId: res.orderId,
+            patientName: res.patientName,
+          },
+        });
+        return;
       }
 
-      if (res.orderId) {
-        navigate(`/reports/${res.orderId}`);
-      } else {
-        navigate('/reports');
-      }
+      // Success -> navigate to report
+      navigate(`/reports/${res.orderId}`, { state: { token } });
     } catch (err) {
       setError(err.message || t('otpInvalid'));
     } finally {
@@ -88,14 +93,14 @@ export default function LinkLanding() {
     }
   };
 
-  // "This is not for me" path
+  // User clicks "This is not for me"
   const handleNotForMe = async () => {
     try {
       setSubmitting(true);
       await api(`/links/${token}/not-for-me`, { method: 'POST' });
       setStep('not_for_me_done');
     } catch (err) {
-      console.warn('Not for me error:', err);
+      console.warn('not-for-me error:', err);
       setStep('not_for_me_done');
     } finally {
       setSubmitting(false);
@@ -104,7 +109,7 @@ export default function LinkLanding() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#07151f] flex items-center justify-center text-slate-100">
         <LoadingSpinner />
       </div>
     );
@@ -113,22 +118,27 @@ export default function LinkLanding() {
   // EXPIRED, REVOKED, OR UNKNOWN TOKEN
   if (!linkInfo?.valid) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
+      <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col justify-between font-sans relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+          <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+        </div>
+
         <DemoRibbon />
-        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto">
-          <span className="font-bold text-gray-900">{t('appName')}</span>
+        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto relative z-10">
+          <span className="font-black text-white font-display text-lg">{t('appName')}</span>
           <LangSwitch />
         </header>
 
-        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto text-center">
-          <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-sm space-y-4">
-            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400 text-2xl">
-              ⏱
+        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto text-center relative z-10">
+          <div className="glass-panel-elevated rounded-3xl border border-white/20 p-8 shadow-2xl space-y-4 text-white">
+            <div className="w-14 h-14 bg-rose-500/15 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto text-rose-300 shadow-sm">
+              <svg className="w-7 h-7 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-display font-black text-white">
               {t('invalidLinkTitle')}
             </h1>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {t('invalidLinkDesc')}
             </p>
             <div className="pt-2">
@@ -143,7 +153,7 @@ export default function LinkLanding() {
           </div>
         </main>
 
-        <footer className="p-4 text-center text-xs text-gray-400">
+        <footer className="p-4 text-center text-xs text-slate-400 relative z-10">
           <span>Company A Diagnostics</span>
         </footer>
       </div>
@@ -153,28 +163,33 @@ export default function LinkLanding() {
   // "NOT FOR ME" CONFIRMATION SCREEN
   if (step === 'not_for_me_done') {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
+      <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col justify-between font-sans relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+          <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+        </div>
+
         <DemoRibbon />
-        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto">
-          <span className="font-bold text-gray-900">{linkInfo.labName}</span>
+        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto relative z-10">
+          <span className="font-black text-white font-display text-lg">{linkInfo.labName}</span>
           <LangSwitch />
         </header>
 
-        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto text-center">
-          <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-sm space-y-4">
-            <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 text-2xl">
-              ✓
+        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto text-center relative z-10">
+          <div className="glass-panel-elevated rounded-3xl border border-white/20 p-8 shadow-2xl space-y-4 text-white">
+            <div className="w-14 h-14 bg-emerald-500/20 border border-emerald-500/40 rounded-2xl flex items-center justify-center mx-auto text-emerald-300 shadow-sm">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-display font-black text-white">
               Thank You
             </h1>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               We have noted that this number was incorrect. The link has been disabled and our staff will verify the contact details.
             </p>
           </div>
         </main>
 
-        <footer className="p-4 text-center text-xs text-gray-400">
+        <footer className="p-4 text-center text-xs text-slate-400 relative z-10">
           <span>Company A Diagnostics</span>
         </footer>
       </div>
@@ -184,26 +199,31 @@ export default function LinkLanding() {
   // OTP ENTER SCREEN (after pressing Send OTP)
   if (step === 'otp_sent') {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
+      <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col justify-between font-sans relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+          <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+        </div>
+
         <DemoRibbon />
-        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto">
-          <span className="font-bold text-gray-900">{linkInfo.labName}</span>
+        <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto relative z-10">
+          <span className="font-black text-white font-display text-lg">{linkInfo.labName}</span>
           <LangSwitch />
         </header>
 
-        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200/90 p-6 md:p-8 shadow-sm space-y-6">
+        <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto relative z-10">
+          <div className="glass-panel-elevated rounded-3xl border border-white/20 p-6 md:p-8 shadow-2xl space-y-6 text-white">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-2xl font-display font-black text-white tracking-tight">
                 {t('otpTitle')}
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {t('otpSubtitle')} <strong className="text-gray-800">{linkInfo.maskedPhone}</strong>
+              <p className="text-sm text-slate-300 mt-1">
+                {t('otpSubtitle')} <strong className="text-emerald-400 font-mono font-bold">{linkInfo.maskedPhone}</strong>
               </p>
             </div>
 
             {demoOtpCode && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-900 text-center">
+              <div className="p-3 bg-amber-500/15 border border-amber-500/35 rounded-2xl text-xs font-mono font-bold text-amber-200 text-center">
                 Demo OTP: <strong>{demoOtpCode}</strong>
               </div>
             )}
@@ -223,13 +243,13 @@ export default function LinkLanding() {
                       next[i] = clean;
                       setOtp(next);
                     }}
-                    className="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0F5E57] outline-none tabular-nums"
+                    className="w-12 h-14 text-center text-2xl font-mono font-bold border border-white/20 rounded-2xl bg-[#07151f]/80 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 outline-none tabular-nums shadow-inner transition"
                   />
                 ))}
               </div>
 
               {error && (
-                <p className="text-xs text-red-600 font-semibold text-center">
+                <p className="text-xs text-rose-400 font-semibold text-center">
                   {error}
                 </p>
               )}
@@ -239,7 +259,7 @@ export default function LinkLanding() {
                 variant="primary"
                 fullWidth
                 loading={submitting}
-                className="font-bold text-base"
+                className="font-black text-base shadow-lg shadow-emerald-500/25 py-3 rounded-xl cursor-pointer"
               >
                 {t('verifyOtp')}
               </Button>
@@ -249,7 +269,7 @@ export default function LinkLanding() {
               <button
                 type="button"
                 onClick={handleNotForMe}
-                className="text-xs text-gray-400 hover:text-gray-700 underline"
+                className="text-xs text-slate-400 hover:text-white underline cursor-pointer transition"
               >
                 {t('notForMe')}
               </button>
@@ -257,7 +277,7 @@ export default function LinkLanding() {
           </div>
         </main>
 
-        <footer className="p-4 text-center text-xs text-gray-400">
+        <footer className="p-4 text-center text-xs text-slate-400 relative z-10">
           <span>Company A Diagnostics • Secure Link Portal</span>
         </footer>
       </div>
@@ -266,42 +286,46 @@ export default function LinkLanding() {
 
   // INITIAL NEUTRAL LANDING GATE
   // Shows ONLY: lab name, "Your report is ready", button "Send OTP to ••••1234", and "This is not for me"
-  // NO PATIENT NAME, NO TEST NAME!
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col justify-between font-sans relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+        <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+      </div>
+
       <DemoRibbon />
 
-      <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto">
-        <span className="font-bold text-gray-900 text-base">{linkInfo.labName}</span>
+      <header className="p-4 flex justify-between items-center max-w-md w-full mx-auto relative z-10">
+        <span className="font-black text-white font-display text-lg">{linkInfo.labName}</span>
         <LangSwitch />
       </header>
 
-      <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-200/90 p-6 md:p-8 shadow-sm space-y-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center mx-auto text-[#0F5E57] text-2xl font-bold">
-            📋
+      <main className="flex-1 flex flex-col justify-center px-4 py-8 max-w-md w-full mx-auto relative z-10">
+        <div className="glass-panel-elevated rounded-3xl border border-white/20 p-6 md:p-8 shadow-2xl space-y-6 text-center text-white">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto text-emerald-300 shadow-md shadow-emerald-500/20">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-display font-black text-white tracking-tight">
               {t('linkGateSubtitle')}
             </h1>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-slate-300 mt-2">
               For your privacy, reports are protected with mobile OTP verification.
             </p>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200/80">
-            <span className="text-xs text-gray-500 block mb-1">
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+            <span className="text-xs text-slate-400 block mb-1 font-mono uppercase tracking-wider">
               {t('sendOtpTo')}
             </span>
-            <span className="text-lg font-bold text-gray-800 tracking-wider font-mono">
+            <span className="text-xl font-bold text-emerald-300 tracking-wider font-mono">
               {linkInfo.maskedPhone}
             </span>
           </div>
 
           {error && (
-            <p className="text-xs text-red-600 font-semibold">{error}</p>
+            <p className="text-xs text-rose-400 font-semibold">{error}</p>
           )}
 
           <Button
@@ -310,16 +334,19 @@ export default function LinkLanding() {
             size="lg"
             loading={submitting}
             onClick={handleSendOtp}
-            className="font-bold text-base shadow-sm"
+            className="font-black text-base shadow-lg shadow-emerald-500/25 py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
           >
-            {t('sendOtpButton')} →
+            <span>{t('sendOtpButton')}</span>
+            <svg className="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </Button>
 
           <div className="pt-2">
             <button
               type="button"
               onClick={handleNotForMe}
-              className="text-xs text-gray-400 hover:text-gray-700 underline font-medium"
+              className="text-xs text-slate-400 hover:text-white underline font-medium cursor-pointer transition"
             >
               {t('notForMe')}
             </button>
@@ -327,10 +354,9 @@ export default function LinkLanding() {
         </div>
       </main>
 
-      <footer className="p-4 text-center text-xs text-gray-400">
+      <footer className="p-4 text-center text-xs text-slate-400 relative z-10">
         <span>Company A Diagnostics • Secure Link Gate</span>
       </footer>
     </div>
   );
 }
-

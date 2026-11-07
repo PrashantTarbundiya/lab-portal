@@ -1,0 +1,9 @@
+order_id,patient_name,mobile,sex,dob,parameter,unit,result,reference_range,status,referring_doctor,signed_at
+,Missing Order ID,9000000020,F,1990-01-01,Haemoglobin,g/dL,12.5,12.0-15.5,Ready,Dr. P. Anitha,2026-11-01T10:00:00+05:30
+ORD-71250,Bad Mobile,12345,M,1980-05-10,Haemoglobin,g/dL,14.0,13.0-17.0,Ready,Dr. S. Ramanaiah,2026-11-01T10:00:00+05:30
+ORD-71251,Bad Range Test,9000000021,F,1975-03-15,Haemoglobin,g/dL,11.0,not-a-range,Ready,Dr. K. Suresh,2026-11-01T10:00:00+05:30
+ORD-71252,Non Numeric Result,9000000022,M,1985-07-20,Blood Group,,AB+,N/A,Ready,Dr. P. Anitha,2026-11-01T10:00:00+05:30
+ORD-71204,Lakshmi Prasanna K,9000000099,F,1978-04-12,Haemoglobin,g/dL,10.2,12.0-15.5,Ready,Dr. S. Ramanaiah,2026-11-01T10:15:00+05:30
+ORD-71253,Duplicate Test,9000000023,F,1992-11-11,Potassium,mmol/L,4.5,3.5-5.1,Ready,Dr. K. Suresh,2026-11-01T10:00:00+05:30
+ORD-71253,Duplicate Test,9000000023,F,1992-11-11,Potassium,mmol/L,4.5,3.5-5.1,Ready,Dr. K. Suresh,2026-11-01T10:00:00+05:30
+

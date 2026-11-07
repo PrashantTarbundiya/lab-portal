@@ -17,7 +17,7 @@ function renderInlineText(text) {
       parts.push(text.substring(lastIndex, match.index));
     }
     parts.push(
-      <strong key={match.index} className="font-bold text-gray-950">
+      <strong key={match.index} className="font-bold text-white">
         {match[1]}
       </strong>
     );
@@ -90,22 +90,22 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
         );
 
         elements.push(
-          <div key={`table-${index}`} className="my-3 overflow-x-auto rounded-xl border border-teal-200/80 shadow-2xs">
-            <table className="w-full text-left text-xs bg-white">
-              <thead className="bg-[#0F5E57]/10 text-[#0F5E57] font-bold uppercase tracking-wider text-[10px] border-b border-teal-200">
+          <div key={`table-${index}`} className="my-3 overflow-x-auto rounded-xl border border-white/10 shadow-md">
+            <table className="w-full text-left text-xs bg-[#0c1a24]/90">
+              <thead className="bg-[#132330] text-emerald-300 font-mono font-bold uppercase tracking-wider text-[10px] border-b border-white/10">
                 <tr>
                   {headerRow.map((h, hi) => (
-                    <th key={hi} className="py-2 px-3">
+                    <th key={hi} className="py-2.5 px-3">
                       {renderInlineText(h)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5 font-mono">
                 {bodyRows.map((row, ri) => (
-                  <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                  <tr key={ri} className={ri % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}>
                     {row.map((cell, ci) => (
-                      <td key={ci} className="py-2 px-3 text-gray-800">
+                      <td key={ci} className="py-2 px-3 text-slate-200">
                         {renderInlineText(cell)}
                       </td>
                     ))}
@@ -125,9 +125,9 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
       elements.push(
         <h4
           key={`header-${index}`}
-          className="font-bold text-sm text-[#0F5E57] mt-3 mb-1.5 flex items-center gap-1.5"
+          className="font-bold text-sm text-emerald-300 mt-3 mb-1.5 flex items-center gap-1.5 font-display"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           <span>{renderInlineText(textWithoutHash)}</span>
         </h4>
       );
@@ -149,8 +149,8 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
       elements.push(
         <ul key={`ul-${index}`} className="my-2 space-y-1.5 pl-1">
           {bulletLines.map((item, bi) => (
-            <li key={bi} className="flex items-start gap-2 text-xs md:text-sm text-gray-800 leading-relaxed">
-              <span className="text-[#0F5E57] font-bold text-sm leading-tight mt-0.5">•</span>
+            <li key={bi} className="flex items-start gap-2 text-xs md:text-sm text-slate-200 leading-relaxed">
+              <span className="text-emerald-400 font-bold text-sm leading-tight mt-0.5">•</span>
               <div className="flex-1">{renderInlineText(item)}</div>
             </li>
           ))}
@@ -174,8 +174,8 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
       elements.push(
         <ol key={`ol-${index}`} className="my-2 space-y-1.5 pl-1">
           {numLines.map((item, ni) => (
-            <li key={ni} className="flex items-start gap-2 text-xs md:text-sm text-gray-800 leading-relaxed">
-              <span className="text-[#0F5E57] font-black text-xs bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md min-w-[20px] text-center">
+            <li key={ni} className="flex items-start gap-2 text-xs md:text-sm text-slate-200 leading-relaxed">
+              <span className="text-emerald-300 font-black text-xs bg-emerald-500/20 border border-emerald-500/40 px-1.5 py-0.5 rounded-md min-w-[20px] text-center font-mono">
                 {ni + 1}
               </span>
               <div className="flex-1">{renderInlineText(item)}</div>
@@ -188,7 +188,7 @@ export default function FormattedAIResponse({ content = '', className = '' }) {
 
     // 6. Regular Paragraph
     elements.push(
-      <p key={`p-${index}`} className="my-1.5 text-xs md:text-sm text-gray-800 leading-relaxed">
+      <p key={`p-${index}`} className="my-1.5 text-xs md:text-sm text-slate-200 leading-relaxed">
         {renderInlineText(trimmed)}
       </p>
     );

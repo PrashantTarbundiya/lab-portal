@@ -27,20 +27,21 @@ export function ToastProvider({ children }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-lg border text-sm font-medium transition-all transform translate-y-0 ${
+            className={`pointer-events-auto flex items-center justify-between p-4 rounded-2xl shadow-2xl border text-sm font-semibold backdrop-blur-xl transition-all transform translate-y-0 ${
               toast.type === 'success'
-                ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                ? 'bg-[#0f2922]/95 text-emerald-200 border-emerald-500/40 shadow-emerald-950/40'
                 : toast.type === 'error'
-                ? 'bg-red-50 text-red-900 border-red-200'
-                : 'bg-white text-gray-900 border-gray-200'
+                ? 'bg-[#2b1016]/95 text-rose-200 border-rose-500/40 shadow-rose-950/40'
+                : 'bg-[#0c1a24]/95 text-slate-100 border-white/20 shadow-black/50'
             }`}
           >
             <span>{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
-              className="ml-3 text-gray-400 hover:text-gray-700"
+              className="ml-3 text-slate-400 hover:text-white cursor-pointer flex items-center justify-center p-1 rounded-lg hover:bg-white/10"
+              aria-label="Dismiss toast"
             >
-              ✕
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         ))}

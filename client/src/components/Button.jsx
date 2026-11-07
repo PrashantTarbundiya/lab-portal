@@ -13,11 +13,11 @@ export default function Button({
   const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none';
 
   const variants = {
-    primary: 'bg-[#0F5E57] hover:bg-[#0c4b45] text-white focus:ring-[#0F5E57]',
-    secondary: 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 focus:ring-gray-400',
-    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-300',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
-    outlineDanger: 'bg-white hover:bg-red-50 text-red-600 border border-red-300 focus:ring-red-400',
+    primary: 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black shadow-md shadow-emerald-500/25 focus:ring-emerald-400',
+    secondary: 'bg-white/10 hover:bg-white/20 text-white border border-white/15 focus:ring-white/20',
+    ghost: 'bg-transparent hover:bg-white/10 text-slate-200 focus:ring-white/20',
+    danger: 'bg-rose-600 hover:bg-rose-500 text-white focus:ring-rose-500',
+    outlineDanger: 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 focus:ring-rose-500',
   };
 
   // 48px minimum tap target height on mobile for patient accessibility

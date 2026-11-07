@@ -97,21 +97,96 @@ Open your browser to: **`http://localhost:5173`**
 
 ---
 
-## 3. Production Deployment
+## 3. Production & Container Deployment
 
-### 3.1 Backend & Database Deployment
-- **Database**: Managed PostgreSQL on Supabase or Neon in India Region (Mumbai `ap-south-1`).
-- **Server API**: Hosted on Render, Railway, or Vercel Serverless Functions (`bom1` region).
-  - Build command: `npm install && npx prisma generate`
-  - Start command: `node src/index.js`
-  - Run migrations in deployment pipeline: `npx prisma migrate deploy`
+### 3.1 Containerized Deployment with Docker Compose (Recommended)
+The fastest, turnkey way to run the entire stack (PostgreSQL + Backend API + Nginx Frontend) in Docker:
 
-### 3.2 Frontend Deployment
-- **Frontend SPA**: Vercel, Netlify, or Cloudflare Pages.
-  - Root directory: `client`
-  - Build command: `npm run build`
-  - Output directory: `dist`
-  - Configure SPA rewrites to `/index.html`.
+```bash
+# Build and start all services in detached mode
+docker compose up --build -d
+
+# Check running containers and health status
+docker compose ps
+
+# View backend logs in real-time
+docker compose logs -f backend
+```
+
+- **Frontend UI**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Health Check**: http://localhost:3000/api/health
+- **PostgreSQL**: `localhost:5432` (database: `lab_portal`)
+
+### 3.2 Standalone Backend Docker Container
+To build and deploy only the backend Express container (e.g. AWS ECS, GCP Cloud Run, Render, Railway, DigitalOcean):
+
+```bash
+# Build the backend image
+docker build -t lab-portal-backend ./server
+
+# Run container with environment file
+docker run -d \
+  --name lab-portal-backend \
+  -p 3000:3000 \
+  --env-file server/.env \
+  --restart unless-stopped \
+  lab-portal-backend
+
+# Test backend health
+curl http://localhost:3000/api/health
+```
+
+### 3.3 Render (Backend API) Deployment
+The repository includes a ready-to-use Render Blueprint [`render.yaml`](render.yaml) and pre-configured `package.json` scripts.
+
+#### Option 1: 1-Click Blueprint (Recommended)
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** -> **Blueprint**.
+2. Connect your GitHub repository. Render reads `render.yaml` automatically.
+3. Provide your PostgreSQL database connection string (`DATABASE_URL`).
+4. Click **Apply**.
+
+#### Option 2: Manual Web Service Setup
+1. In Render, click **New +** -> **Web Service**.
+2. Select your repository.
+3. Configure settings:
+   - **Name**: `lab-portal-backend`
+   - **Root Directory**: `server`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && npx prisma generate`
+   - **Start Command**: `node src/index.js`
+   - **Health Check Path**: `/api/health`
+4. Add Environment Variables:
+   - `NODE_ENV`: `production`
+   - `DATABASE_URL`: *[Your PostgreSQL connection string]*
+   - `DIRECT_URL`: *[Your unpooled direct connection string]*
+   - `APP_BASE_URL`: *[Your Vercel URL, e.g. `https://your-app.vercel.app`]*
+   - `APP_HASH_SECRET`: `super-secret-dev-hash-key-12345`
+   - `LAB_NAME`: `Company A Diagnostics`
+   - `OTP_DEMO_MODE`: `true`
+   - `DEMO_PASSWORD`: `Demo@12345`
+   - `LINK_TTL_HOURS`: `72`
+5. Click **Deploy Web Service**.
+
+---
+
+### 3.4 Vercel (Frontend SPA) Deployment
+The client is pre-configured with SPA fallback rewrites via [`vercel.json`](vercel.json) and [`client/vercel.json`](client/vercel.json).
+
+1. In the [Vercel Dashboard](https://vercel.com/new), import your repository.
+2. Configure Project Settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `client` *(click Edit and select `client`)*
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+3. Add the following Environment Variables:
+   - `VITE_API_BASE_URL`: `https://<your-render-service>.onrender.com/api`
+   - `VITE_SUPABASE_URL`: `https://<your-project>.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY`: `<your-supabase-anon-key>`
+   - `VITE_OTP_DEMO_MODE`: `true`
+   - `VITE_RAZORPAY_KEY_ID`: `<your-razorpay-key-id>`
+4. Click **Deploy**. Vercel will build and assign your production URL.
+5. Copy your Vercel URL (e.g. `https://lab-portal.vercel.app`) and paste it as `APP_BASE_URL` in your Render backend settings so CORS and link generation are perfectly matched.
 
 ---
 

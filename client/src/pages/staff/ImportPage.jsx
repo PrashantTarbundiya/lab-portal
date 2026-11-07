@@ -5,8 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
+import Badge from '../../components/Badge';
 import DemoRibbon from '../../components/DemoRibbon';
-import StaffNavbar from '../../components/StaffNavbar';
 
 export default function ImportPage() {
   const [file, setFile] = useState(null);
@@ -17,6 +17,7 @@ export default function ImportPage() {
   const [error, setError] = useState('');
 
   const { token, logout, user } = useAuth();
+  const staffAuthToken = token && !token.startsWith('demo-patient') ? token : 'demo-staff';
   const { addToast } = useToast();
 
   const handleFileDrop = (e) => {
@@ -59,7 +60,7 @@ export default function ImportPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await apiUpload('/import/upload', formData, token);
+      const res = await apiUpload('/import/upload', formData, staffAuthToken);
       setReport(res.report);
       addToast('CSV import processed successfully', 'success');
     } catch (err) {
@@ -78,7 +79,7 @@ export default function ImportPage() {
       const res = await api('/import/simulate', {
         method: 'POST',
         body: { fileType: type },
-        token,
+        token: staffAuthToken,
       });
 
       setReport(res.report);
@@ -109,17 +110,22 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
+    <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950 font-sans">
       <DemoRibbon />
-      <StaffNavbar />
+
+      {/* Atmospheric Ambience Glows */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+        <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+      </div>
 
       {/* Main Container */}
-      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
             LIS Data Ingestion & Import Pipeline
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-xs text-slate-300 mt-1">
             Upload CSV exports from the desktop Lab Information System or simulate automated drops.
           </p>
         </div>
@@ -129,23 +135,23 @@ export default function ImportPage() {
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleFileDrop}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all bg-white ${
-            dragOver ? 'border-[#0F5E57] bg-teal-50/20' : 'border-gray-300 hover:border-gray-400'
+          className={`border-2 border-dashed rounded-3xl p-8 text-center transition-all glass-panel-elevated shadow-xl ${
+            dragOver ? 'border-emerald-400 bg-emerald-500/10' : 'border-white/20 hover:border-emerald-500/40'
           }`}
         >
-          <div className="w-14 h-14 bg-teal-50 text-[#0F5E57] rounded-full flex items-center justify-center mx-auto text-2xl font-bold mb-3">
-            📁
+          <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center mx-auto mb-3 border border-emerald-500/20">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
           </div>
 
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-base font-display font-bold text-white">
             {file ? file.name : 'Choose a file or drag & drop here'}
           </h3>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-slate-300 mt-1 max-w-sm mx-auto">
             CSV files only up to 4 MB (approx. 20,000 rows). Must contain standard LIS headers.
           </p>
 
           <div className="mt-5 flex justify-center gap-3">
-            <label className="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs">
+            <label className="cursor-pointer bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer active:scale-95">
               Browse File
               <input type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
             </label>
@@ -165,19 +171,19 @@ export default function ImportPage() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700">
+          <div className="p-4 bg-rose-500/20 border border-rose-500/40 rounded-2xl text-xs font-semibold text-rose-300">
             {error}
           </div>
         )}
 
         {/* Simulate LIS Drop Box */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-sm space-y-3">
+        <div className="glass-card border border-white/10 rounded-2xl p-6 shadow-xl space-y-3 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-base font-display font-bold text-white">
                 Simulate LIS Export Folder Drop
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-slate-300 mt-0.5">
                 Emulates the lab system generating batch exports into the drop folder
               </p>
             </div>
@@ -191,29 +197,29 @@ export default function ImportPage() {
               >
                 Simulate Sample Batch
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                loading={simulating}
+              <button
+                type="button"
+                disabled={simulating}
                 onClick={() => handleSimulate('update')}
-                className="text-xs font-semibold"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition cursor-pointer shadow-sm disabled:opacity-50"
                 title="Flips processing orders to SIGNED to demonstrate real-time report link generation"
               >
-                Simulate Sign-Off Update 🚀
-              </Button>
+                <svg className="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <span>Simulate Sign-Off Update</span>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Import Report Section */}
         {report && (
-          <div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="glass-panel-elevated border border-white/15 rounded-3xl p-6 shadow-2xl space-y-6 text-white">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-display font-black text-white">
                   Import Summary Report
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-400 font-mono">
                   Batch executed at {new Date().toLocaleTimeString('en-IN')}
                 </p>
               </div>
@@ -224,43 +230,44 @@ export default function ImportPage() {
 
             {/* 4 Stat Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
-                <span className="text-xs text-gray-500 block">Total Rows</span>
-                <span className="text-2xl font-bold text-gray-900 tabular-nums">{report.rowsTotal}</span>
+              <div className="glass-card p-4 rounded-2xl border border-white/10 text-center">
+                <span className="text-xs text-slate-400 block font-mono">Total Rows</span>
+                <span className="text-2xl font-display font-black text-white tabular-nums">{report.rowsTotal}</span>
               </div>
-              <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-center">
-                <span className="text-xs text-emerald-700 block">Rows Succeeded</span>
-                <span className="text-2xl font-bold text-emerald-900 tabular-nums">{report.rowsOk}</span>
+              <div className="glass-card p-4 rounded-2xl border border-emerald-500/30 text-center">
+                <span className="text-xs text-emerald-400 block font-mono">Rows Succeeded</span>
+                <span className="text-2xl font-display font-black text-emerald-300 tabular-nums">{report.rowsOk}</span>
               </div>
-              <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-center">
-                <span className="text-xs text-amber-700 block">Orders Created</span>
-                <span className="text-2xl font-bold text-amber-900 tabular-nums">{report.ordersCreated}</span>
+              <div className="glass-card p-4 rounded-2xl border border-amber-500/30 text-center">
+                <span className="text-xs text-amber-400 block font-mono">Orders Created</span>
+                <span className="text-2xl font-display font-black text-amber-300 tabular-nums">{report.ordersCreated}</span>
               </div>
-              <div className="bg-teal-50 p-4 rounded-xl border border-teal-100 text-center">
-                <span className="text-xs text-teal-700 block">Orders Signed</span>
-                <span className="text-2xl font-bold text-[#0F5E57] tabular-nums">{report.ordersSigned}</span>
+              <div className="glass-card p-4 rounded-2xl border border-teal-500/30 text-center">
+                <span className="text-xs text-teal-400 block font-mono">Orders Signed</span>
+                <span className="text-2xl font-display font-black text-teal-300 tabular-nums">{report.ordersSigned}</span>
               </div>
             </div>
 
             {/* Error / Skipped List */}
             {report.errors && report.errors.length > 0 && (
-              <div className="space-y-3 pt-3 border-t border-gray-100">
+              <div className="space-y-3 pt-3 border-t border-white/10">
                 <div className="flex justify-between items-center">
-                  <h4 className="text-sm font-bold text-gray-800">
+                  <h4 className="text-sm font-bold text-white font-display">
                     Row-level Validation Warnings ({report.errors.length})
                   </h4>
                   <button
                     onClick={handleDownloadErrorsCSV}
-                    className="text-xs text-[#0F5E57] font-semibold hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-semibold hover:underline cursor-pointer"
                   >
-                    Download Errors CSV ↓
+                    <span>Download Errors CSV</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
                   </button>
                 </div>
 
-                <div className="max-h-48 overflow-y-auto space-y-1.5 border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+                <div className="max-h-48 overflow-y-auto space-y-1.5 border border-white/10 rounded-2xl p-3 bg-white/5 font-mono">
                   {report.errors.map((errItem, idx) => (
-                    <div key={idx} className="text-xs text-gray-700 flex items-start gap-2">
-                      <span className="text-red-500 font-bold">•</span>
+                    <div key={idx} className="text-xs text-slate-300 flex items-start gap-2">
+                      <span className="text-rose-400 font-bold">•</span>
                       <span>{errItem}</span>
                     </div>
                   ))}

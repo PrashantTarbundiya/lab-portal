@@ -1,0 +1,43 @@
+order_id,patient_name,mobile,sex,dob,parameter,unit,result,reference_range,status,referring_doctor,signed_at
+ORD-71204,Lakshmi Prasanna K,9000000001,F,1978-04-12,Haemoglobin,g/dL,10.2,12.0-15.5,Ready,Dr. S. Ramanaiah,2026-11-01T10:15:00+05:30
+ORD-71204,Lakshmi Prasanna K,9000000001,F,1978-04-12,Total WBC,10^3/µL,6.5,4.0-11.0,Ready,Dr. S. Ramanaiah,2026-11-01T10:15:00+05:30
+ORD-71204,Lakshmi Prasanna K,9000000001,F,1978-04-12,Platelet count,10^3/µL,250,150-400,Ready,Dr. S. Ramanaiah,2026-11-01T10:15:00+05:30
+ORD-71204,Lakshmi Prasanna K,9000000001,F,1978-04-12,RBC count,10^6/µL,4.1,3.8-5.2,Ready,Dr. S. Ramanaiah,2026-11-01T10:15:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,Fasting glucose,mg/dL,145,70-100,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,HbA1c,%,7.8,<5.7,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,Total cholesterol,mg/dL,230,<200,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,LDL cholesterol,mg/dL,155,0-100,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,HDL cholesterol,mg/dL,35,>40,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71205,Srinivas Rao T,9000000001,M,1975-08-22,Triglycerides,mg/dL,280,<150,Ready,Dr. S. Ramanaiah,2026-11-01T11:00:00+05:30
+ORD-71206,Padmavathi D,9000000004,F,1955-03-18,Haemoglobin,g/dL,13.5,12.0-15.5,Ready,Dr. P. Anitha,2026-11-01T12:00:00+05:30
+ORD-71206,Padmavathi D,9000000004,F,1955-03-18,Total WBC,10^3/µL,7.2,4.0-11.0,Ready,Dr. P. Anitha,2026-11-01T12:00:00+05:30
+ORD-71206,Padmavathi D,9000000004,F,1955-03-18,Platelet count,10^3/µL,280,150-400,Ready,Dr. P. Anitha,2026-11-01T12:00:00+05:30
+ORD-71206,Padmavathi D,9000000004,F,1955-03-18,Fasting glucose,mg/dL,95,70-100,Ready,Dr. P. Anitha,2026-11-01T12:00:00+05:30
+ORD-71207,Ramesh Kumar B,9000000005,M,1968-11-05,TSH,mIU/L,8.5,0.4-4.0,Ready,Dr. K. Suresh,2026-11-01T13:00:00+05:30
+ORD-71207,Ramesh Kumar B,9000000005,M,1968-11-05,Vitamin D,ng/mL,12,30-100,Ready,Dr. K. Suresh,2026-11-01T13:00:00+05:30
+ORD-71207,Ramesh Kumar B,9000000005,M,1968-11-05,Calcium,mg/dL,9.2,8.5-10.5,Ready,Dr. K. Suresh,2026-11-01T13:00:00+05:30
+ORD-71208,Sumalatha G,9000000006,F,1982-07-14,Creatinine,mg/dL,1.8,0.6-1.2,Ready,Dr. S. Ramanaiah,2026-11-01T14:00:00+05:30
+ORD-71208,Sumalatha G,9000000006,F,1982-07-14,Potassium,mmol/L,4.8,3.5-5.1,Ready,Dr. S. Ramanaiah,2026-11-01T14:00:00+05:30
+ORD-71208,Sumalatha G,9000000006,F,1982-07-14,Sodium,mmol/L,140,136-145,Ready,Dr. S. Ramanaiah,2026-11-01T14:00:00+05:30
+ORD-71219,Venkata Rao M,9000000002,M,1962-09-03,LDL cholesterol,mg/dL,142,0-100,Processing,Dr. P. Anitha,
+ORD-71219,Venkata Rao M,9000000002,M,1962-09-03,Total cholesterol,mg/dL,220,<200,Processing,Dr. P. Anitha,
+ORD-71219,Venkata Rao M,9000000002,M,1962-09-03,HDL cholesterol,mg/dL,42,>40,Processing,Dr. P. Anitha,
+ORD-71219,Venkata Rao M,9000000002,M,1962-09-03,Triglycerides,mg/dL,195,<150,Processing,Dr. P. Anitha,
+ORD-71220,Anusha P,9000000007,F,1995-05-28,Haemoglobin,g/dL,14.2,12.0-15.5,Processing,Dr. P. Anitha,
+ORD-71220,Anusha P,9000000007,F,1995-05-28,Total WBC,10^3/µL,8.1,4.0-11.0,Processing,Dr. P. Anitha,
+ORD-71233,Farzana Begum,9000000003,F,1990-01-20,Potassium,mmol/L,6.8,3.5-5.1,Ready (critical),Dr. K. Suresh,2026-11-01T11:40:00+05:30
+ORD-71233,Farzana Begum,9000000003,F,1990-01-20,Sodium,mmol/L,138,136-145,Ready (critical),Dr. K. Suresh,2026-11-01T11:40:00+05:30
+ORD-71233,Farzana Begum,9000000003,F,1990-01-20,Creatinine,mg/dL,0.9,0.6-1.2,Ready (critical),Dr. K. Suresh,2026-11-01T11:40:00+05:30
+ORD-71234,Narasimha Rao K,9000000008,M,1958-12-01,Haemoglobin,g/dL,6.5,13.0-17.0,Ready (critical),Dr. K. Suresh,2026-11-01T15:00:00+05:30
+ORD-71234,Narasimha Rao K,9000000008,M,1958-12-01,Total WBC,10^3/µL,5.8,4.0-11.0,Ready (critical),Dr. K. Suresh,2026-11-01T15:00:00+05:30
+ORD-71235,Priya Sharma,9000000009,F,1988-06-15,Fasting glucose,mg/dL,88,70-100,Ready,Dr. P. Anitha,2026-10-28T09:00:00+05:30
+ORD-71235,Priya Sharma,9000000009,F,1988-06-15,HbA1c,%,5.2,<5.7,Ready,Dr. P. Anitha,2026-10-28T09:00:00+05:30
+ORD-71235,Priya Sharma,9000000009,F,1988-06-15,TSH,mIU/L,2.8,0.4-4.0,Ready,Dr. P. Anitha,2026-10-28T09:00:00+05:30
+ORD-71236,Rajesh Varma,9000000010,M,1972-02-20,INR,,1.2,0.8-1.2,Ready,Dr. S. Ramanaiah,2026-10-29T10:30:00+05:30
+ORD-71237,Kavitha M,9000000004,F,1980-09-10,Haemoglobin,g/dL,11.8,12.0-15.5,Ready,Dr. P. Anitha,2026-10-30T08:45:00+05:30
+ORD-71237,Kavitha M,9000000004,F,1980-09-10,Vitamin D,ng/mL,18,30-100,Ready,Dr. P. Anitha,2026-10-30T08:45:00+05:30
+ORD-71238,Ravi Teja S,9000000011,M,1992-04-03,Haemoglobin,g/dL,15.5,13.0-17.0,Ready,Dr. K. Suresh,2026-10-31T11:00:00+05:30
+ORD-71238,Ravi Teja S,9000000011,M,1992-04-03,Total WBC,10^3/µL,7.0,4.0-11.0,Ready,Dr. K. Suresh,2026-10-31T11:00:00+05:30
+ORD-71238,Ravi Teja S,9000000011,M,1992-04-03,Platelet count,10^3/µL,310,150-400,Ready,Dr. K. Suresh,2026-10-31T11:00:00+05:30
+ORD-71239,Bhavani K,9000000001,F,2005-11-25,Haemoglobin,g/dL,12.8,12.0-15.5,Ready,Dr. P. Anitha,2026-10-31T14:00:00+05:30
+

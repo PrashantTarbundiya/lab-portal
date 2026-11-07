@@ -9,7 +9,6 @@ const PRESET_PANELS = [
   {
     name: 'Thyroid Wellness Profile',
     category: 'Thyroid',
-    icon: '🦋',
     results: [
       { parameter: 'TSH (Thyroid Stimulating Hormone)', value: '5.85', unit: 'µIU/mL', refRangeRaw: '0.35-4.94', flag: 'HIGH' },
       { parameter: 'Free T3 (Triiodothyronine)', value: '2.9', unit: 'pg/mL', refRangeRaw: '1.71-3.71', flag: 'NORMAL' },
@@ -19,7 +18,6 @@ const PRESET_PANELS = [
   {
     name: 'Liver Function Test (LFT)',
     category: 'Liver',
-    icon: '🧪',
     results: [
       { parameter: 'Total Bilirubin', value: '1.4', unit: 'mg/dL', refRangeRaw: '0.2-1.2', flag: 'HIGH' },
       { parameter: 'SGPT (ALT)', value: '58', unit: 'U/L', refRangeRaw: '7-56', flag: 'HIGH' },
@@ -30,7 +28,6 @@ const PRESET_PANELS = [
   {
     name: 'Lipid & Heart Health Panel',
     category: 'Cardiovascular',
-    icon: '🫀',
     results: [
       { parameter: 'Total cholesterol', value: '225', unit: 'mg/dL', refRangeRaw: '125-200', flag: 'HIGH' },
       { parameter: 'Triglycerides', value: '240', unit: 'mg/dL', refRangeRaw: '< 150', flag: 'HIGH' },
@@ -41,7 +38,6 @@ const PRESET_PANELS = [
   {
     name: 'Diabetes & Glucose Screen',
     category: 'Metabolic',
-    icon: '🩸',
     results: [
       { parameter: 'Fasting glucose', value: '138', unit: 'mg/dL', refRangeRaw: '70-99', flag: 'HIGH' },
       { parameter: 'HbA1c', value: '7.4', unit: '%', refRangeRaw: '4.0-5.6', flag: 'HIGH' },
@@ -50,7 +46,6 @@ const PRESET_PANELS = [
   {
     name: 'Vitamin D3 & B12 Vitality',
     category: 'Vitamins',
-    icon: '☀️',
     results: [
       { parameter: 'Vitamin D (25-OH)', value: '16.5', unit: 'ng/mL', refRangeRaw: '30.0-100.0', flag: 'LOW' },
       { parameter: 'Vitamin B12', value: '190', unit: 'pg/mL', refRangeRaw: '211-911', flag: 'LOW' },
@@ -59,7 +54,6 @@ const PRESET_PANELS = [
   {
     name: 'Renal & Kidney Function (KFT)',
     category: 'Kidney',
-    icon: '💧',
     results: [
       { parameter: 'Serum Creatinine', value: '1.0', unit: 'mg/dL', refRangeRaw: '0.6-1.2', flag: 'NORMAL' },
       { parameter: 'Blood Urea', value: '32', unit: 'mg/dL', refRangeRaw: '15-45', flag: 'NORMAL' },
@@ -136,7 +130,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
         token,
       });
 
-      addToast(`🎉 Order #${res.order.orderNo} created for ${res.order.patientName}!`, 'success');
+      addToast(`Order #${res.order.orderNo} created for ${res.order.patientName}!`, 'success');
       if (onOrderCreated) onOrderCreated(res.order);
       onClose();
     } catch (err) {
@@ -148,17 +142,17 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="➕ Create New Diagnostic Report">
+    <Modal isOpen={isOpen} onClose={onClose} title="Create New Diagnostic Report">
       <form onSubmit={handleSubmit} className="space-y-4 text-xs md:text-sm">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+          <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-rose-300 text-xs font-medium">
             {error}
           </div>
         )}
 
         {/* 1. Quick Test Panel Selector */}
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1.5">
+          <label className="block text-xs font-mono uppercase font-bold text-slate-300 mb-1.5">
             Select Clinical Test Panel Preset:
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -169,8 +163,8 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
                 onClick={() => handleSelectPreset(idx)}
                 className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2 ${
                   selectedPresetIndex === idx
-                    ? 'border-[#0F5E57] bg-teal-50/70 text-[#0F5E57] font-bold shadow-2xs'
-                    : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                    ? 'border-emerald-400 bg-emerald-500/20 text-white font-black shadow-sm ring-1 ring-emerald-400'
+                    : 'glass-card border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5'
                 }`}
               >
                 <span className="text-base">{p.icon}</span>
@@ -181,7 +175,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
         </div>
 
         {/* 2. Patient Information */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
           <div>
             <Field
               label="Patient Full Name"
@@ -205,55 +199,55 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Gender</label>
+            <label className="block text-xs font-mono uppercase font-bold text-slate-300 mb-1">Gender</label>
             <select
               value={sex}
               onChange={(e) => setSex(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#0F5E57] outline-none"
+              className="w-full glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-400 outline-none"
             >
-              <option value="F">Female (F)</option>
-              <option value="M">Male (M)</option>
-              <option value="O">Other (O)</option>
+              <option value="F" className="bg-[#0b1924] text-white">Female (F)</option>
+              <option value="M" className="bg-[#0b1924] text-white">Male (M)</option>
+              <option value="O" className="bg-[#0b1924] text-white">Other (O)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Referring Doctor</label>
+            <label className="block text-xs font-mono uppercase font-bold text-slate-300 mb-1">Referring Doctor</label>
             <select
               value={doctorName}
               onChange={(e) => setDoctorName(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#0F5E57] outline-none"
+              className="w-full glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-400 outline-none"
             >
-              <option value="Dr. S. Ramanaiah">Dr. S. Ramanaiah</option>
-              <option value="Dr. K. Suresh">Dr. K. Suresh</option>
-              <option value="Dr. M. Sunita">Dr. M. Sunita</option>
-              <option value="Self / Walk-in">Self / Walk-in</option>
+              <option value="Dr. S. Ramanaiah" className="bg-[#0b1924] text-white">Dr. S. Ramanaiah</option>
+              <option value="Dr. K. Suresh" className="bg-[#0b1924] text-white">Dr. K. Suresh</option>
+              <option value="Dr. M. Sunita" className="bg-[#0b1924] text-white">Dr. M. Sunita</option>
+              <option value="Self / Walk-in" className="bg-[#0b1924] text-white">Self / Walk-in</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Order Status</label>
+            <label className="block text-xs font-mono uppercase font-bold text-slate-300 mb-1">Order Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#0F5E57] outline-none"
+              className="w-full glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-400 outline-none"
             >
-              <option value="SIGNED">SIGNED (Verified & Dispatched)</option>
-              <option value="PROCESSING">PROCESSING (In Lab Testing)</option>
+              <option value="SIGNED" className="bg-[#0b1924] text-white">SIGNED (Verified & Dispatched)</option>
+              <option value="PROCESSING" className="bg-[#0b1924] text-white">PROCESSING (In Lab Testing)</option>
             </select>
           </div>
         </div>
 
         {/* 3. Parameter Results Table */}
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-2 border-t border-white/10">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-bold text-gray-900">
+            <span className="text-xs font-mono uppercase font-bold text-slate-300">
               Test Parameters & Values ({results.length}):
             </span>
             <button
               type="button"
               onClick={handleAddResultRow}
-              className="text-xs font-semibold text-[#0F5E57] hover:underline"
+              className="text-xs font-bold text-emerald-400 hover:text-emerald-300"
             >
               + Add Custom Row
             </button>
@@ -263,43 +257,44 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
             {results.map((r, i) => (
               <div
                 key={i}
-                className="grid grid-cols-12 gap-1.5 items-center p-2 rounded-xl bg-gray-50 border border-gray-200/80 text-xs"
+                className="grid grid-cols-12 gap-1.5 items-center p-2 rounded-xl bg-white/5 border border-white/10 text-xs"
               >
                 <input
                   type="text"
                   value={r.parameter}
                   onChange={(e) => handleResultChange(i, 'parameter', e.target.value)}
                   placeholder="Parameter"
-                  className="col-span-4 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs"
+                  className="col-span-4 glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-lg px-2 py-1 text-xs"
                 />
                 <input
                   type="text"
                   value={r.value}
                   onChange={(e) => handleResultChange(i, 'value', e.target.value)}
                   placeholder="Value"
-                  className="col-span-2 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold"
+                  className="col-span-2 glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-lg px-2 py-1 text-xs font-bold font-mono"
                 />
                 <input
                   type="text"
                   value={r.unit}
                   onChange={(e) => handleResultChange(i, 'unit', e.target.value)}
                   placeholder="Unit"
-                  className="col-span-2 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs"
+                  className="col-span-2 glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-lg px-2 py-1 text-xs"
                 />
                 <input
                   type="text"
                   value={r.refRangeRaw}
                   onChange={(e) => handleResultChange(i, 'refRangeRaw', e.target.value)}
                   placeholder="Ref Range"
-                  className="col-span-3 bg-white border border-gray-200 rounded-lg px-2 py-1 text-[11px]"
+                  className="col-span-3 glass-input border border-white/15 bg-[#07151f]/80 text-white rounded-lg px-2 py-1 text-[11px]"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveResultRow(i)}
-                  className="col-span-1 text-red-500 hover:text-red-700 text-center font-bold"
+                  className="col-span-1 text-rose-400 hover:text-rose-300 flex items-center justify-center p-1 cursor-pointer"
                   title="Remove row"
+                  aria-label="Remove row"
                 >
-                  ✕
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
             ))}
@@ -307,12 +302,12 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, toke
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
+        <div className="pt-3 border-t border-white/10 flex justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
           <Button type="submit" variant="primary" size="sm" loading={loading} className="font-bold">
-            ⚡ Create & Generate Report
+            Create & Generate Report
           </Button>
         </div>
       </form>

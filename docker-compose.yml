@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
@@ -18,6 +17,57 @@ services:
       timeout: 3s
       retries: 5
 
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: lab-portal-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/lab_portal?schema=public}
+      - DIRECT_URL=${DIRECT_URL:-postgresql://postgres:postgres@postgres:5432/lab_portal?schema=public}
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:5173}
+      - APP_HASH_SECRET=${APP_HASH_SECRET:-super-secret-dev-hash-key-12345}
+      - LAB_NAME=${LAB_NAME:-Company A Diagnostics}
+      - OTP_DEMO_MODE=${OTP_DEMO_MODE:-true}
+      - DEMO_PASSWORD=${DEMO_PASSWORD:-Demo@12345}
+      - LINK_TTL_HOURS=${LINK_TTL_HOURS:-72}
+      - AUTO_SEED=${AUTO_SEED:-true}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-nvidia/nemotron-3.5-super-vl:free}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: lab-portal-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - '5173:80'
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost/']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   pgdata:
-

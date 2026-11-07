@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/ tests/",
@@ -13,6 +15,9 @@
     "db:push": "npx prisma db push",
     "db:seed": "node prisma/seed.js",
     "db:studio": "npx prisma studio"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -27,6 +32,7 @@
     "helmet": "^8.0.0",
     "multer": "^1.4.5-lts.1",
     "pdf-lib": "^1.17.1",
+    "razorpay": "^2.9.8",
     "zod": "^3.24.1"
   },
   "devDependencies": {

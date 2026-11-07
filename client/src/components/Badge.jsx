@@ -5,11 +5,11 @@ export default function Badge({
   className = '',
 }) {
   const variants = {
-    default: 'bg-gray-100 text-gray-800 border-gray-200',
-    success: 'bg-[#DCFCE7] text-[#166534] border-green-200', // ok #166534 on #DCFCE7
-    warning: 'bg-[#FEF3C7] text-[#B45309] border-amber-200', // low/high #B45309 on #FEF3C7
-    danger: 'bg-[#FEE2E2] text-[#B91C1C] border-red-200',    // critical #B91C1C on #FEE2E2
-    info: 'bg-blue-50 text-blue-700 border-blue-200',
+    default: 'bg-white/10 text-slate-200 border-white/15',
+    success: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs',
+    warning: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs',
+    danger: 'bg-rose-500/25 text-rose-300 border-rose-500/45 shadow-xs',
+    info: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-xs',
   };
 
   const sizes = {
@@ -20,7 +20,7 @@ export default function Badge({
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded-full border ${variants[variant] || variants.default} ${sizes[size] || sizes.md} ${className}`}
+      className={`inline-flex items-center font-bold font-mono rounded-full border ${variants[variant] || variants.default} ${sizes[size] || sizes.md} ${className}`}
     >
       {children}
     </span>

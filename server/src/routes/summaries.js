@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireStaff } from '../middleware/auth.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
 import { writeLog } from '../lib/audit.js';
 
 const router = Router();
+
+// Staff, Doctor, and Super Admin medical review authorization
+const requireMedicalOrStaff = requireRole('FRONT_DESK', 'DOCTOR', 'ADMIN');
 
 // POST /api/summaries/flag
 // Patient flags an auto-generated or template summary
@@ -74,8 +77,8 @@ router.post('/flag', authenticate, async (req, res) => {
 });
 
 // GET /api/summaries/flags
-// Staff view of flagged summaries
-router.get('/flags', authenticate, requireStaff, async (req, res) => {
+// Staff & Doctor view of flagged summaries
+router.get('/flags', authenticate, requireMedicalOrStaff, async (req, res) => {
   try {
     const flags = await prisma.summaryFlag.findMany({
       orderBy: { createdAt: 'desc' },
@@ -102,7 +105,7 @@ router.get('/flags', authenticate, requireStaff, async (req, res) => {
 });
 
 // PUT /api/summaries/flags/:id/review
-router.put('/flags/:id/review', authenticate, requireStaff, async (req, res) => {
+router.put('/flags/:id/review', authenticate, requireMedicalOrStaff, async (req, res) => {
   try {
     const { id } = req.params;
     const flag = await prisma.summaryFlag.update({
@@ -118,8 +121,8 @@ router.put('/flags/:id/review', authenticate, requireStaff, async (req, res) => 
 });
 
 // GET /api/summaries/sample
-// Pathologist weekly review: random 50 summaries from the past 7 days
-router.get('/sample', authenticate, requireStaff, async (req, res) => {
+// Pathologist & Doctor weekly review: random 50 summaries from the past 7 days
+router.get('/sample', authenticate, requireMedicalOrStaff, async (req, res) => {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -153,8 +156,8 @@ router.get('/sample', authenticate, requireStaff, async (req, res) => {
 });
 
 // PUT /api/summaries/:id/review
-// Pathologist approves or changes a summary
-router.put('/:id/review', authenticate, requireStaff, async (req, res) => {
+// Pathologist or Doctor approves or changes a summary
+router.put('/:id/review', authenticate, requireMedicalOrStaff, async (req, res) => {
   try {
     const { id } = req.params;
     const schema = z.object({

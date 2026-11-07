@@ -18,26 +18,31 @@ import crypto from 'crypto';
  * @returns {Promise<object>}
  */
 export async function writeLog({ actorType, actorId, accountId, orderId, action, outcome = 'OK', detail, req }) {
-  const ipHash = req
-    ? crypto
-        .createHmac('sha256', process.env.APP_HASH_SECRET || 'dev')
-        .update(req.ip || '')
-        .digest('hex')
-        .slice(0, 16)
-    : null;
-  const userAgentShort = req?.headers?.['user-agent']?.slice(0, 100) || null;
+  try {
+    const ipHash = req
+      ? crypto
+          .createHmac('sha256', process.env.APP_HASH_SECRET || 'dev')
+          .update(req.ip || '')
+          .digest('hex')
+          .slice(0, 16)
+      : null;
+    const userAgentShort = req?.headers?.['user-agent']?.slice(0, 100) || null;
 
-  return prisma.accessLog.create({
-    data: {
-      actorType,
-      actorId,
-      accountId,
-      orderId,
-      action,
-      ipHash,
-      userAgentShort,
-      outcome,
-      detail,
-    },
-  });
+    return await prisma.accessLog.create({
+      data: {
+        actorType,
+        actorId,
+        accountId,
+        orderId,
+        action,
+        ipHash,
+        userAgentShort,
+        outcome,
+        detail,
+      },
+    });
+  } catch (err) {
+    console.warn('writeLog audit non-blocking warning:', err.message);
+    return { id: 'log-fallback', actorType, action, outcome };
+  }
 }

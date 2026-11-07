@@ -6,13 +6,13 @@ export default function Card({
   padding = 'p-6',
 }) {
   const clickable = hoverable || onClick
-    ? 'cursor-pointer hover:border-gray-300 hover:shadow-md transition-all'
+    ? 'cursor-pointer hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all'
     : '';
 
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm ${padding} ${clickable} ${className}`}
+      className={`glass-card rounded-2xl border border-white/10 text-slate-200 shadow-xl ${padding} ${clickable} ${className}`}
     >
       {children}
     </div>

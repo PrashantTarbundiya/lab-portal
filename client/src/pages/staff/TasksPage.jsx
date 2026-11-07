@@ -8,7 +8,6 @@ import Button from '../../components/Button';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import DemoRibbon from '../../components/DemoRibbon';
-import StaffNavbar from '../../components/StaffNavbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function TasksPage() {
@@ -100,64 +99,122 @@ export default function TasksPage() {
     }
   };
 
+  const tabs = [
+    {
+      id: 'CRITICAL_CALLBACK',
+      label: 'Critical Callbacks',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'WRONG_NUMBER',
+      label: 'Wrong Number Reports',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'MOBILE_CHANGE',
+      label: 'Mobile Changes',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'CONSENT_WITHDRAWAL',
+      label: 'Consent Erasure',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'FLAGS',
+      label: 'Patient Flagged Summaries',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+        </svg>
+      ),
+    },
+    {
+      id: 'PATHOLOGIST_SAMPLE',
+      label: 'Pathologist Weekly 50',
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
+    <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950 font-sans">
       <DemoRibbon />
-      <StaffNavbar />
+
+      {/* Atmospheric Ambience Glows */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+        <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
             Clinical Tasks, Wrong Numbers & Quality Assurance
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-xs text-slate-300 mt-1">
             Resolve held critical calls, audit wrong number reports, and conduct weekly pathologist reviews.
           </p>
         </div>
 
         {/* Tab Strip */}
-        <div className="flex overflow-x-auto gap-2 border-b border-gray-200 pb-2">
-          {[
-            { id: 'CRITICAL_CALLBACK', label: 'Critical Callbacks' },
-            { id: 'WRONG_NUMBER', label: 'Wrong Number Reports' },
-            { id: 'MOBILE_CHANGE', label: 'Mobile Changes' },
-            { id: 'CONSENT_WITHDRAWAL', label: 'Consent Erasure' },
-            { id: 'FLAGS', label: 'Patient Flagged Summaries' },
-            { id: 'PATHOLOGIST_SAMPLE', label: 'Pathologist Weekly 50' },
-          ].map((tab) => (
+        <div className="bg-[#0c1c28]/90 p-1.5 rounded-2xl border border-white/10 flex overflow-x-auto gap-1.5 no-scrollbar">
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
+              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-[#0F5E57] text-white shadow-sm'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              {tab.label}
+              {tab.icon}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <div className="py-12 flex justify-center">
+            <LoadingSpinner />
+          </div>
         ) : activeTab === 'FLAGS' ? (
           /* Flagged Summaries View */
           <div className="space-y-3">
             {flags.length === 0 ? (
-              <p className="text-center py-12 text-sm text-gray-400">No open summary flags.</p>
+              <p className="text-center py-12 text-sm text-slate-400">No open summary flags.</p>
             ) : (
               flags.map((f) => (
-                <Card key={f.id} className="p-5 border-gray-200 space-y-2">
-                  <div className="flex justify-between items-start">
+                <div key={f.id} className="bg-[#0c1c28]/90 p-5 rounded-2xl border border-white/10 space-y-2 text-white">
+                  <div className="flex justify-between items-start gap-3">
                     <div>
-                      <span className="text-xs font-bold text-gray-500">Order #{f.summary?.order?.orderNo}</span>
-                      <h3 className="text-base font-bold text-gray-900">
+                      <span className="text-xs font-mono font-bold text-emerald-400">Order #{f.summary?.order?.orderNo}</span>
+                      <h3 className="text-base font-display font-bold text-white mt-0.5">
                         Reason: {f.reason}
                       </h3>
                       {f.freeText && (
-                        <p className="text-sm text-gray-700 bg-gray-50 p-2.5 rounded-lg mt-1 italic">
+                        <p className="text-sm text-slate-300 bg-white/5 border border-white/10 p-3 rounded-xl mt-2 italic">
                           "{f.freeText}"
                         </p>
                       )}
@@ -166,29 +223,34 @@ export default function TasksPage() {
                       {f.status}
                     </Badge>
                   </div>
-                  <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                  <div className="text-xs font-mono text-slate-400 pt-2 border-t border-white/10">
                     Flagged by patient on {formatDate(f.createdAt)}
                   </div>
-                </Card>
+                </div>
               ))
             )}
           </div>
         ) : activeTab === 'PATHOLOGIST_SAMPLE' ? (
           /* Pathologist Weekly 50 Sample Review View */
           <div className="space-y-3">
-            <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 font-medium">
-              📋 <strong>Weekly Pathologist Review (50 Random Summaries):</strong> Review auto-generated explanations and approve or modify before archiving.
+            <div className="p-4 bg-[#0c1c28]/90 border border-teal-500/30 rounded-2xl text-xs text-teal-200 font-medium flex items-center gap-2.5">
+              <svg className="w-4 h-4 text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <div>
+                <strong className="text-white">Weekly Pathologist Review (50 Random Summaries):</strong> Review auto-generated explanations and approve or modify before archiving.
+              </div>
             </div>
 
             {sampleSummaries.length === 0 ? (
-              <p className="text-center py-12 text-sm text-gray-400">No summaries generated in the past 7 days.</p>
+              <p className="text-center py-12 text-sm text-slate-400">No summaries generated in the past 7 days.</p>
             ) : (
               sampleSummaries.map((s) => (
-                <Card key={s.id} className="p-5 border-gray-200 space-y-3">
-                  <div className="flex justify-between items-start">
+                <div key={s.id} className="bg-[#0c1c28]/90 p-5 rounded-2xl border border-white/10 space-y-3 text-white">
+                  <div className="flex justify-between items-start gap-3">
                     <div>
-                      <span className="text-xs text-gray-500">Order #{s.order?.orderNo} • Language: {s.lang.toUpperCase()}</span>
-                      <h4 className="text-sm font-bold text-gray-900 mt-0.5">
+                      <span className="text-xs font-mono text-emerald-400">Order #{s.order?.orderNo} • Language: {s.lang.toUpperCase()}</span>
+                      <h4 className="text-sm font-display font-bold text-white mt-0.5">
                         Patient: {s.order?.patient?.fullName}
                       </h4>
                     </div>
@@ -197,24 +259,26 @@ export default function TasksPage() {
                     </Badge>
                   </div>
 
-                  <div className="p-3 bg-gray-50 rounded-xl text-xs text-gray-800 leading-relaxed font-mono">
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-xs text-slate-200 leading-relaxed font-mono">
                     {s.body}
                   </div>
 
-                  <div className="flex justify-between items-center text-xs text-gray-400 pt-1">
-                    <span>Source: {s.source}</span>
+                  <div className="flex justify-between items-center text-xs text-slate-400 pt-1 border-t border-white/10">
+                    <span className="font-mono">Source: {s.source}</span>
                     {s.reviewStatus !== 'APPROVED' && (
-                      <Button
-                        variant="primary"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => handleApproveSummary(s.id)}
-                        className="text-xs px-3 py-1 min-h-[30px]"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
                       >
-                        ✓ Pathologist Approve
-                      </Button>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Pathologist Approve</span>
+                      </button>
                     )}
                   </div>
-                </Card>
+                </div>
               ))
             )}
           </div>
@@ -222,55 +286,58 @@ export default function TasksPage() {
           /* Callback Tasks List */
           <div className="space-y-3">
             {tasks.length === 0 ? (
-              <p className="text-center py-12 text-sm text-gray-400">No open tasks in this category.</p>
+              <p className="text-center py-12 text-sm text-slate-400">No open tasks in this category.</p>
             ) : (
               tasks.map((task) => (
-                <Card key={task.id} className="p-5 border-gray-200 space-y-3">
-                  <div className="flex justify-between items-start">
+                <div key={task.id} className="bg-[#0c1c28]/90 p-5 rounded-2xl border border-white/10 space-y-3 text-white">
+                  <div className="flex justify-between items-start gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-gray-500">
+                        <span className="text-xs font-mono text-emerald-400">
                           {task.order ? `Order #${task.order.orderNo}` : 'Account Task'}
                         </span>
                         <Badge variant={task.status === 'OPEN' ? 'danger' : 'default'} size="sm">
                           {task.status}
                         </Badge>
                       </div>
-                      <h3 className="text-base font-bold text-gray-900 mt-1">
+                      <h3 className="text-base font-display font-bold text-white mt-1">
                         {task.reason}
                       </h3>
                       {task.order?.patient?.fullName && (
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          Patient: <strong className="text-gray-800">{task.order.patient.fullName}</strong>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          Patient: <strong className="text-white">{task.order.patient.fullName}</strong>
                         </p>
                       )}
                     </div>
 
                     {task.status === 'OPEN' && (
-                      <Button
-                        variant="primary"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => {
                           setSelectedTask(task);
                           setIsDoneModalOpen(true);
                         }}
+                        className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-sm active:scale-95"
                       >
-                        Resolve →
-                      </Button>
+                        <span>Resolve</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
                     )}
                   </div>
 
                   {task.note && (
-                    <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-700">
-                      <strong>Resolution Note:</strong> {task.note}
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-xs text-slate-200 font-mono">
+                      <strong className="text-emerald-300">Resolution Note:</strong> {task.note}
                     </div>
                   )}
 
-                  <div className="text-[11px] text-gray-400 pt-1 border-t border-gray-100 flex justify-between">
+                  <div className="text-[11px] font-mono text-slate-400 pt-1 border-t border-white/10 flex justify-between">
                     <span>Created: {formatDate(task.createdAt)}</span>
                     {task.doneBy && <span>Resolved by: {task.doneBy.name}</span>}
                   </div>
-                </Card>
+                </div>
               ))
             )}
           </div>
@@ -284,12 +351,12 @@ export default function TasksPage() {
         title="Resolve Staff Task"
       >
         <form onSubmit={handleMarkDone} className="space-y-4">
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-slate-300">
             {selectedTask?.reason}
           </p>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Resolution Note / Pathologist Action <span className="text-red-500">*</span>
+            <label className="block text-xs font-mono font-semibold text-slate-300 mb-1">
+              Resolution Note / Pathologist Action <span className="text-rose-400">*</span>
             </label>
             <textarea
               required
@@ -297,7 +364,7 @@ export default function TasksPage() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Verified with patient by phone, confirmed number correction / callback completed..."
-              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-[#0F5E57] outline-none"
+              className="w-full rounded-xl border border-white/15 p-3 text-sm bg-white/5 text-white focus:outline-none focus:border-emerald-400 outline-none"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -313,4 +380,3 @@ export default function TasksPage() {
     </div>
   );
 }
-

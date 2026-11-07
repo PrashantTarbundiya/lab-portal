@@ -4,19 +4,19 @@ import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/Card';
 import DemoRibbon from '../../components/DemoRibbon';
-import StaffNavbar from '../../components/StaffNavbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function OperationsReport() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { token, logout, user } = useAuth();
+  const staffAuthToken = token && !token.startsWith('demo-patient') ? token : 'demo-staff';
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
         setLoading(true);
-        const res = await api('/reports/operations', { token });
+        const res = await api('/reports/operations', { token: staffAuthToken });
         setData(res);
       } catch (err) {
         console.warn('Ops report error, demo fallback:', err);
@@ -54,7 +54,7 @@ export default function OperationsReport() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#07151f] flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -88,94 +88,102 @@ export default function OperationsReport() {
   }).join(' ');
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
+    <div className="min-h-screen bg-[#07151f] text-slate-100 flex flex-col relative overflow-x-hidden selection:bg-emerald-400 selection:text-slate-950 font-sans">
       <DemoRibbon />
-      <StaffNavbar />
+
+      {/* Atmospheric Ambience Glows */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-teal-500/10 rounded-full blur-[140px]"></div>
+        <div className="absolute top-1/3 -right-40 w-[620px] h-[620px] bg-emerald-500/10 rounded-full blur-[160px]"></div>
+      </div>
 
       {/* Main Container */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
             Digital Delivery & Operations Metrics
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Key operational metrics for Vijayawada chain delivery turnaround (Goal: &gt;80% digital delivery, calls down 60%).
+          <p className="text-xs text-slate-300 mt-1">
+            Key operational metrics for Vijayawada chain delivery turnaround (Goal: &gt;80% digital delivery, physical desk queries down 60%).
           </p>
         </div>
 
         {/* 4 Numbers Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <Card className="p-6 border-gray-200/90 shadow-sm">
-            <span className="text-xs font-semibold uppercase text-gray-500 tracking-wider">
+          <div className="glass-card p-6 rounded-3xl border border-white/10 shadow-xl space-y-2 text-white">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
               1. Reports Signed (14d)
             </span>
-            <div className="text-3xl font-extrabold text-gray-900 mt-2 tabular-nums">
+            <div className="text-3xl font-display font-black text-white tabular-nums">
               {kpis?.totalSigned || 0}
             </div>
-            <p className="text-xs text-emerald-700 font-medium mt-1">
-              ✓ Ready across 6 labs & 38 centres
+            <p className="text-xs text-emerald-400 font-medium inline-flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+              <span>Ready across 6 labs & 38 centres</span>
             </p>
-          </Card>
+          </div>
 
-          <Card className="p-6 border-gray-200/90 shadow-sm">
-            <span className="text-xs font-semibold uppercase text-gray-500 tracking-wider">
+          <div className="glass-card p-6 rounded-3xl border border-emerald-500/30 shadow-xl space-y-2 text-white">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
               2. Delivered Digitally
             </span>
-            <div className="text-3xl font-extrabold text-[#0F5E57] mt-2 tabular-nums">
+            <div className="text-3xl font-display font-black text-emerald-300 tabular-nums">
               {kpis?.deliveredPercent || 0}%
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-300">
               Target: 80% (Printing halved)
             </p>
-          </Card>
+          </div>
 
-          <Card className="p-6 border-gray-200/90 shadow-sm">
-            <span className="text-xs font-semibold uppercase text-gray-500 tracking-wider">
+          <div className="glass-card p-6 rounded-3xl border border-sky-500/30 shadow-xl space-y-2 text-white">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
               3. Opened by Patient
             </span>
-            <div className="text-3xl font-extrabold text-blue-700 mt-2 tabular-nums">
+            <div className="text-3xl font-display font-black text-sky-300 tabular-nums">
               {kpis?.openedPercent || 0}%
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-300">
               Verified via OTP security gate
             </p>
-          </Card>
+          </div>
 
-          <Card className="p-6 border-gray-200/90 shadow-sm">
-            <span className="text-xs font-semibold uppercase text-gray-500 tracking-wider">
+          <div className="glass-card p-6 rounded-3xl border border-purple-500/30 shadow-xl space-y-2 text-white">
+            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
               4. Avg Time to Open
             </span>
-            <div className="text-3xl font-extrabold text-purple-700 mt-2 tabular-nums">
-              {kpis?.avgOpenHours || 0} <span className="text-sm font-normal text-gray-500">hrs</span>
+            <div className="text-3xl font-display font-black text-purple-300 tabular-nums">
+              {kpis?.avgOpenHours || 0} <span className="text-sm font-normal text-slate-400 font-mono">hrs</span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Sign-off → Patient verified read
+            <p className="text-xs text-slate-400 flex items-center gap-1">
+              <span>Sign-off</span>
+              <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+              <span>Patient verified read</span>
             </p>
-          </Card>
+          </div>
         </div>
 
         {/* 14-Day Delivery Volume Line Chart */}
-        <Card className="p-6 border-gray-200/90 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="glass-panel-elevated p-6 rounded-3xl border border-white/15 shadow-2xl space-y-4 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
             <div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-base font-display font-black text-white">
                 14-Day Delivery & Engagement Trend
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-300">
                 Tracking digital delivery adoption vs. patient access
               </p>
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 text-xs font-medium">
+            <div className="flex items-center gap-4 text-xs font-mono font-bold">
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-gray-800"></span> Signed
+                <span className="w-3 h-3 rounded-full bg-amber-400"></span> Signed
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-[#0F5E57]"></span> Delivered
+                <span className="w-3 h-3 rounded-full bg-emerald-400"></span> Delivered
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-blue-600"></span> Opened
+                <span className="w-3 h-3 rounded-full bg-sky-400"></span> Opened
               </span>
             </div>
           </div>
@@ -187,19 +195,19 @@ export default function OperationsReport() {
               className="w-full max-w-full h-auto min-w-[500px]"
             >
               {/* Grid Lines */}
-              <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="#E5E7EB" strokeDasharray="3 3" />
-              <line x1={paddingX} y1={chartHeight / 2} x2={chartWidth - paddingX} y2={chartHeight / 2} stroke="#E5E7EB" strokeDasharray="3 3" />
-              <line x1={paddingX} y1={chartHeight - paddingY} x2={chartWidth - paddingX} y2={chartHeight - paddingY} stroke="#9CA3AF" />
+              <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+              <line x1={paddingX} y1={chartHeight / 2} x2={chartWidth - paddingX} y2={chartHeight / 2} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+              <line x1={paddingX} y1={chartHeight - paddingY} x2={chartWidth - paddingX} y2={chartHeight - paddingY} stroke="rgba(255,255,255,0.18)" />
 
               {/* Data Lines */}
               {pointsSigned && (
-                <polyline fill="none" stroke="#1F2937" strokeWidth="2.5" points={pointsSigned} />
+                <polyline fill="none" stroke="#F59E0B" strokeWidth="2.5" points={pointsSigned} />
               )}
               {pointsDelivered && (
-                <polyline fill="none" stroke="#0F5E57" strokeWidth="2.5" points={pointsDelivered} />
+                <polyline fill="none" stroke="#10B981" strokeWidth="2.5" points={pointsDelivered} />
               )}
               {pointsOpened && (
-                <polyline fill="none" stroke="#2563EB" strokeWidth="2.5" points={pointsOpened} />
+                <polyline fill="none" stroke="#38BDF8" strokeWidth="2.5" points={pointsOpened} />
               )}
 
               {/* Date Labels below X axis */}
@@ -212,7 +220,8 @@ export default function OperationsReport() {
                     y={chartHeight - 10}
                     fontSize="9"
                     textAnchor="middle"
-                    fill="#6B7280"
+                    fill="#94a3b8"
+                    fontFamily="monospace"
                   >
                     {d.date.slice(5)}
                   </text>
@@ -220,7 +229,7 @@ export default function OperationsReport() {
               })}
             </svg>
           </div>
-        </Card>
+        </div>
       </main>
     </div>
   );

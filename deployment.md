@@ -190,6 +190,80 @@ The client is pre-configured with SPA fallback rewrites via [`vercel.json`](verc
 
 ---
 
+### 3.5 AWS Free Tier (EC2 24/7 Deployment)
+AWS Free Tier includes **750 hours per month** of `t2.micro` instances (12 months free), which is enough to run your application **24 hours a day, 7 days a week, 365 days a year for free**.
+
+#### Step 1: Launch an EC2 Free Tier Instance
+1. In the [AWS Management Console](https://console.aws.amazon.com/ec2/), click **Launch Instance**.
+2. **Name**: `lab-portal-server`
+3. **OS / AMI**: **Ubuntu Server 24.04 LTS (HVM)** *(Free Tier eligible)*
+4. **Instance Type**: **`t2.micro`** (or `t3.micro` where eligible)
+5. **Key Pair**: Select your `.pem` key pair (or create a new one).
+6. **Network / Security Group**:
+   - Check **Allow SSH traffic from Anywhere** (Port 22)
+   - Check **Allow HTTP traffic from the internet** (Port 80)
+   - Check **Allow HTTPS traffic from the internet** (Port 443)
+   - Add Custom TCP Rule: Port `3000` (Backend API)
+   - Add Custom TCP Rule: Port `5173` (Vite Client)
+7. **Storage**: Set to **`30 GB` gp3** (maximum free tier limit).
+8. Click **Launch Instance**.
+
+#### Step 2: Connect and Run Setup
+Connect to your EC2 instance via SSH:
+```bash
+ssh -i "your-key.pem" ubuntu@<your-ec2-public-ip>
+```
+
+Run the automated one-click setup script (configures 2GB Swap Memory to prevent OOM on 1GB RAM and installs Docker):
+```bash
+# Clone the repository
+git clone https://github.com/PrashantTarbundiya/lab-portal.git
+cd lab-portal
+
+# Make setup script executable and run
+chmod +x scripts/aws-setup.sh
+./scripts/aws-setup.sh
+
+# Apply docker group permissions
+newgrp docker
+```
+
+#### Step 3: Configure Environment & Start 24/7
+```bash
+# Copy example environment configuration
+cp server/.env.docker.example server/.env
+
+# Start PostgreSQL, Backend API, and Frontend with Docker Compose in background
+docker compose up -d --build
+
+# Verify all containers are running and healthy
+docker compose ps
+```
+Your application is now running 24/7 on AWS EC2!
+- Frontend UI: `http://<your-ec2-ip>:5173`
+- Backend API: `http://<your-ec2-ip>:3000`
+- Healthcheck: `http://<your-ec2-ip>:3000/api/health`
+
+---
+
+### 3.6 24/7 Free-Tier Keep-Alive Automation
+Free hosting tiers (such as Render Free) automatically spin down web services after 15 minutes of idle time. The repository includes two zero-cost solutions to keep services awake 24/7:
+
+#### Solution A: GitHub Actions Heartbeat (100% Free on Public Repos)
+A pre-configured GitHub Actions workflow [`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml) runs on a cron schedule (`*/10 * * * *`) every 10 minutes:
+1. In your GitHub repository, navigate to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+2. Click **New repository secret**.
+3. Name: `TARGET_URL`, Value: `https://your-service.onrender.com` (or your AWS EC2 domain).
+4. GitHub Actions will automatically ping the endpoint every 10 minutes 24/7, keeping it warm and eliminating cold starts.
+
+#### Solution B: Standalone Node.js Keep-Alive Daemon
+Run the lightweight background script [`scripts/keep-alive.js`](scripts/keep-alive.js) on any machine, VPS, or background worker:
+```bash
+TARGET_URL=https://your-service.onrender.com node scripts/keep-alive.js &
+```
+
+---
+
 ## 4. Environment Variables Reference
 
 *(Names only, per specification)*

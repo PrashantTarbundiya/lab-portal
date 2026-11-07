@@ -1,0 +1,38 @@
+name: 24/7 Service Keep-Alive Heartbeat
+
+on:
+  schedule:
+    # Runs every 10 minutes 24/7 to prevent free-tier instances from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Manual test button in GitHub Actions tab
+
+jobs:
+  heartbeat:
+    name: Ping Health Endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Send Heartbeat Ping
+        env:
+          # Reads from GitHub Repo Secret TARGET_URL or falls back to your domain
+          TARGET_URL: ${{ secrets.TARGET_URL || 'https://lab-portal-backend.onrender.com' }}
+        run: |
+          TARGET="${TARGET_URL%/}/api/health"
+          echo "============================================="
+          echo "Keep-Alive Heartbeat Target: $TARGET"
+          echo "Execution Timestamp: $(date -u)"
+          echo "============================================="
+          
+          # Curl health endpoint with 30s timeout
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\nLATENCY:%{time_total}s" --max-time 30 "$TARGET")
+          
+          echo "$RESPONSE"
+          
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
+          
+          if [ "$STATUS" = "200" ]; then
+            echo "Result: Service is ACTIVE, healthy, and awake."
+          else
+            echo "Result: HTTP status $STATUS (Service pinged, wake-up signal delivered)."
+          fi

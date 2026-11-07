@@ -36,3 +36,4 @@ jobs:
           else
             echo "Result: HTTP status $STATUS (Service pinged, wake-up signal delivered)."
           fi
+

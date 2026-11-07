@@ -49,3 +49,4 @@ echo " Log out and log back in, or run 'newgrp docker' to use docker without sud
 echo " To run the application:"
 echo "   docker compose up -d --build"
 echo "=========================================================="
+

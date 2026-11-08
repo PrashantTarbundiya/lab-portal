@@ -1,7 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Universal Top Main Navigation Bar
 import TopMainNavbar from './components/TopMainNavbar';
+import FloatingAICopilot from './components/FloatingAICopilot';
 
 // Patient Pages
 import PatientLogin from './pages/patient/PatientLogin';
@@ -31,6 +32,17 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard';
 // Admin Pages
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import HospitalAdminDashboard from './pages/admin/HospitalAdminDashboard';
+
+function GlobalCopilot() {
+  const { pathname } = useLocation();
+  const hasLocalCopilot =
+    pathname.includes('/profiles') ||
+    pathname.includes('/reports') ||
+    pathname.includes('/doctor');
+
+  if (hasLocalCopilot) return null;
+  return <FloatingAICopilot />;
+}
 
 export default function App() {
   return (
@@ -100,6 +112,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      <GlobalCopilot />
     </div>
   );
 }

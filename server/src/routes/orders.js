@@ -13,6 +13,7 @@ import { messageProvider, buildReportMessage } from '../services/messaging.js';
 import { generateSummariesForOrder } from '../services/summary.js';
 import { generatePDF } from '../services/import.js';
 import { appointmentsStore } from './hospitals.js';
+import { handleOrderAskAI, handleGeneralAskAI } from '../lib/ai.js';
 
 const router = Router();
 
@@ -1072,141 +1073,7 @@ router.post('/:id/ask-ai', optionalAuth, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Prepare clinical results context
-    const resultsSummary = order.results.map((r) => {
-      return `- ${r.parameter}: ${r.value} ${r.unit || ''} (Standard Range: ${r.refRangeRaw || 'Not specified'}) [Flag: ${r.flag || 'NORMAL'}]`;
-    }).join('\n');
-
-    // Robust language & Indic script detection
-    const isTelugu = lang === 'te' || /[\u0C00-\u0C7F]/.test(userPrompt) || /telugu/i.test(userPrompt) || /తెలుగు/.test(userPrompt);
-    const isHindi = lang === 'hi' || /[\u0900-\u097F]/.test(userPrompt) || /hindi/i.test(userPrompt) || /हिंदी/.test(userPrompt);
-    const effectiveLang = isTelugu ? 'te' : isHindi ? 'hi' : 'en';
-    const langName = isTelugu ? 'Telugu (తెలుగు)' : isHindi ? 'Hindi (हिन्दी)' : 'English';
-
-    const langInstruction = isTelugu
-      ? `CRITICAL MANDATORY INSTRUCTION: You MUST write your ENTIRE response exclusively in natural, fluent Telugu script (తెలుగు లిపి). Do NOT use English sentences or English explanations. Explain biological values and clinical advice directly in Telugu.`
-      : isHindi
-      ? `CRITICAL MANDATORY INSTRUCTION: You MUST write your ENTIRE response exclusively in natural, fluent Hindi script (हिन्दी / देवनागरी लिपि). Do NOT use English sentences or English explanations. Explain biological values and clinical advice directly in Hindi.`
-      : `Write your response in clear, empathetic English.`;
-
-    const systemPrompt = `You are "Labby", a friendly, knowledgeable, and empathetic clinical AI diagnostic companion at Company A Diagnostics in Vijayawada, Andhra Pradesh, India.
-A patient or doctor is asking a question about a diagnostic lab report.
-
-${langInstruction}
-
-DIAGNOSTIC REPORT CONTEXT:
-Order Number: ${order.orderNo}
-Patient Name: ${order.patient.fullName} (${order.patient.sex || 'Unknown'}, Age: ${order.patient.dob ? Math.floor((new Date() - new Date(order.patient.dob)) / (365.25 * 24 * 3600 * 1000)) + ' years' : 'Adult'})
-Referring Doctor: ${order.doctor?.name || 'Self-referred'}
-Status: ${order.status}
-Critical Alert: ${order.hasCritical ? 'YES - Contains Critical Value(s)' : 'NO'}
-
-LABORATORY TEST RESULTS:
-${resultsSummary}
-
-GUIDELINES FOR LABBY:
-1. ${langInstruction}
-2. Use clean structure: short paragraphs, bullet points for lists, and a clean markdown table (| Parameter | Your Value | Normal Range | Status |) if comparing parameters.
-3. Highlight key terms with **bold**.
-4. If asked about abnormal or critical flags, explain biological functions and potential causes in simple, reassuring terms.
-5. If there is a CRITICAL result (e.g. Potassium > 6.5 mmol/L), clearly advise prompt medical consultation.
-6. NEVER issue a final medical diagnosis or prescribe specific drug dosages.
-7. End with a helpful, friendly tip on discussing these numbers with their physician.
-8. REMINDER: The target language is ${langName}. Respond fully in ${langName}.`;
-
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
-
-    let aiAnswer = null;
-
-    if (openRouterKey) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 18000);
-
-        const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openRouterKey}`,
-            'HTTP-Referer': 'https://isocodelabs.com',
-            'X-Title': 'Company A Diagnostic Portal',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.3,
-            max_tokens: 800,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
-
-        if (openRouterRes.ok) {
-          const data = await openRouterRes.json();
-          aiAnswer = data.choices?.[0]?.message?.content?.trim();
-        } else {
-          console.error('OpenRouter ask-ai HTTP status:', openRouterRes.status);
-        }
-      } catch (err) {
-        console.error('OpenRouter ask-ai error:', err.message);
-      }
-    }
-
-    // Verify Indic script fidelity: if user requested Telugu or Hindi and the model answered in English,
-    // discard the English reply so that our high-fidelity native Indic diagnostic review is delivered.
-    if (aiAnswer) {
-      if (effectiveLang === 'te') {
-        const teluguChars = (aiAnswer.match(/[\u0C00-\u0C7F]/g) || []).length;
-        if (teluguChars < 12) {
-          console.warn('AI returned English despite Telugu prompt; switching to native Telugu template.');
-          aiAnswer = null;
-        }
-      } else if (effectiveLang === 'hi') {
-        const hindiChars = (aiAnswer.match(/[\u0900-\u097F]/g) || []).length;
-        if (hindiChars < 12) {
-          console.warn('AI returned English despite Hindi prompt; switching to native Hindi template.');
-          aiAnswer = null;
-        }
-      }
-    }
-
-    // Comprehensive multi-language fallback if AI service is offline or rate limited
-    if (!aiAnswer) {
-      const abnormalList = order.results.filter(r => r.flag && r.flag !== 'NORMAL');
-      if (effectiveLang === 'te') {
-        aiAnswer = `ఆర్డర్ #${order.orderNo} కోసం ల్యాబ్ డయాగ్నస్టిక్ సమీక్ష:\n\n` +
-          (abnormalList.length > 0
-            ? `మీ రిపోర్టులో క్రింది **${abnormalList.length} పరీక్షలు** సాధారణ శ్రేణికి భిన్నంగా ఉన్నాయి:\n\n` +
-              `| పరీక్ష (Test) | మీ విలువ (Value) | ప్రామాణిక పరిధి (Range) | పరిస్థితి (Status) |\n` +
-              `| :--- | :--- | :--- | :--- |\n` +
-              abnormalList.map(r => `| **${r.parameter}** | ${r.value} ${r.unit || ''} | ${r.refRangeRaw || '—'} | **${r.flag === 'HIGH' ? 'అధికం (HIGH)' : r.flag === 'CRITICAL' ? 'తీవ్రం (CRITICAL)' : 'తక్కువ (LOW)'}** |`).join('\n') +
-              `\n\n${order.hasCritical ? '⚠️ **ముఖ్యమైన గమనిక:** కొన్ని పరీక్ష విలువలు క్రిటికల్ స్థాయిలో ఉన్నాయి. దయచేసి వెంటనే మీ చికిత్సా వైద్యుడిని సంప్రదించండి.' : 'ఈ ఫలితాల ఆధారంగా సరైన ఆహార మార్పులు మరియు జీవనశైలి సూచనల కొరకు మీ డాక్టర్‌ను సంప్రదించండి.'}`
-            : 'మీ అన్ని పరీక్ష ఫలితాలు సాధారణ జీవసంబంధ పరిధిలోనే ఉన్నాయి. ఆరోగ్యకరమైన జీవనశైలిని కొనసాగించండి.') +
-          `\n\nమీ ప్రశ్న: "${userPrompt}" పై వివరణ:\nఈ ఫలితాలు మీ ప్రస్తుత ఆరోగ్య స్థితిని సూచిస్తున్నాయి. మరింత క్లినికల్ వివరణ కొరకు మీ వైద్యుడితో మాట్లాడండి.\n\n*గమనిక: ఈ సమాచారం రోగి అవగాహన కొరకు మాత్రమే. అధికారిక వైద్య నిర్ధారణ కాదు.*`;
-      } else if (effectiveLang === 'hi') {
-        aiAnswer = `ऑर्डर #${order.orderNo} के लिए नैदानिक सारांश:\n\n` +
-          (abnormalList.length > 0
-            ? `आपकी जांच रिपोर्ट में **${abnormalList.length} पैरामीटर** सामान्य सीमा से बाहर पाए गए हैं:\n\n` +
-              `| परीक्षण (Test) | आपका मान (Value) | मानक सीमा (Range) | स्थिति (Status) |\n` +
-              `| :--- | :--- | :--- | :--- |\n` +
-              abnormalList.map(r => `| **${r.parameter}** | ${r.value} ${r.unit || ''} | ${r.refRangeRaw || '—'} | **${r.flag === 'HIGH' ? 'अधिक (HIGH)' : r.flag === 'CRITICAL' ? 'गंभीर (CRITICAL)' : 'कम (LOW)'}** |`).join('\n') +
-              `\n\n${order.hasCritical ? '⚠️ **आवश्यक सूचना:** कुछ मान गंभीर श्रेणी में हैं। कृपया तुरंत अपने डॉक्टर से संपर्क करें।' : 'कृपया इन परिणामों पर अपने चिकित्सक से परामर्श लें और आवश्यक जीवनशैली बदलाव करें।'}`
-            : 'आपके सभी परीक्षण परिणाम सामान्य सीमा के भीतर हैं। स्वस्थ जीवनशैली बनाए रखें।') +
-          `\n\nआपके प्रश्न: "${userPrompt}" पर परामर्श:\nयह रिपोर्ट आपके वर्तमान स्वास्थ्य संकेतकों को दर्शाती है। विस्तृत सलाह हेतु अपने चिकित्सक से परामर्श लें।\n\n*नोट: यह जानकारी केवल रोगी शिक्षा के लिए है। यह आधिकारिक चिकित्सीय निदान नहीं है।*`;
-      } else {
-        aiAnswer = `Clinical Assessment for Order #${order.orderNo}:\n\n` +
-          (abnormalList.length > 0
-            ? `Your test results show ${abnormalList.map(r => `${r.parameter}: ${r.value} ${r.unit} (${r.flag})`).join(', ')}. ` +
-              (order.hasCritical ? '⚠️ Note: One or more parameters require prompt clinical review. Please show this report to your treating physician immediately.' : 'These variations should be discussed with your physician along with your symptoms and medical history.')
-            : 'All recorded test parameters are within normal biological reference intervals.') +
-          `\n\nIn response to: "${userPrompt}"\n\nDisclaimer: This AI response is provided for patient education only and does not replace professional medical evaluation.`;
-      }
-    }
+    const aiRes = await handleOrderAskAI(order, userPrompt, lang);
 
     await writeLog({
       actorType: req.actorType || 'PATIENT',
@@ -1214,17 +1081,11 @@ GUIDELINES FOR LABBY:
       orderId: order.id,
       action: 'REPORT_VIEW',
       outcome: 'OK',
-      detail: `AI Query (${model}): ${userPrompt.slice(0, 60)}...`,
+      detail: `Asked AI question: "${userPrompt.slice(0, 80)}"`,
       req,
     });
 
-    return res.json({
-      success: true,
-      question: userPrompt,
-      answer: aiAnswer,
-      model,
-      orderNo: order.orderNo,
-    });
+    return res.json(aiRes);
   } catch (err) {
     console.error('POST /api/orders/:id/ask-ai error:', err);
     return res.status(500).json({ error: 'Failed to process AI question' });
@@ -1241,98 +1102,8 @@ router.post('/ai/general-ask', optionalAuth, async (req, res) => {
       return res.status(400).json({ error: 'Please provide a question' });
     }
 
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
-    const isTelugu = lang === 'te' || /[\u0C00-\u0C7F]/.test(userPrompt) || /telugu/i.test(userPrompt) || /తెలుగు/.test(userPrompt);
-    const isHindi = lang === 'hi' || /[\u0900-\u097F]/.test(userPrompt) || /hindi/i.test(userPrompt) || /हिंदी/.test(userPrompt);
-    const effectiveLang = isTelugu ? 'te' : isHindi ? 'hi' : 'en';
-    const langName = isTelugu ? 'Telugu (తెలుగు)' : isHindi ? 'Hindi (हिन्दी)' : 'English';
-
-    const langInstruction = isTelugu
-      ? `CRITICAL MANDATORY INSTRUCTION: You MUST write your ENTIRE response exclusively in natural, fluent Telugu script (తెలుగు లిపి). Do NOT reply in English.`
-      : isHindi
-      ? `CRITICAL MANDATORY INSTRUCTION: You MUST write your ENTIRE response exclusively in natural, fluent Hindi script (हिन्दी / देवनागरी लिपि). Do NOT reply in English.`
-      : `Write your response in clear, empathetic English.`;
-
-    const systemPrompt = `You are "Labby", a friendly, empathetic clinical AI diagnostic companion for Company A Diagnostics in Vijayawada, India.
-${langInstruction}
-Answer the user's question clearly, helpfully, and empathetically in ${langName}.
-Guidelines:
-1. ${langInstruction}
-2. Provide accurate educational information regarding medical tests, fasting preparation, and general wellness.
-3. Structure your reply nicely with bullet points and bold key terms. If explaining multiple items, use a clean markdown table.
-4. Maintain patient safety: Do not provide definitive diagnosis or prescribe drug doses.
-5. Always remind them to discuss their results with their physician.
-6. REMINDER: The user has selected ${langName}. Write completely in ${langName}.`;
-
-    let aiAnswer = null;
-
-    if (openRouterKey) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 18000);
-
-        const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openRouterKey}`,
-            'HTTP-Referer': 'https://isocodelabs.com',
-            'X-Title': 'Company A Diagnostic Portal',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.3,
-            max_tokens: 800,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
-
-        if (openRouterRes.ok) {
-          const data = await openRouterRes.json();
-          aiAnswer = data.choices?.[0]?.message?.content?.trim();
-        }
-      } catch (err) {
-        console.error('General AI ask error:', err.message);
-      }
-    }
-
-    if (aiAnswer) {
-      if (effectiveLang === 'te') {
-        const teluguChars = (aiAnswer.match(/[\u0C00-\u0C7F]/g) || []).length;
-        if (teluguChars < 12) {
-          aiAnswer = null;
-        }
-      } else if (effectiveLang === 'hi') {
-        const hindiChars = (aiAnswer.match(/[\u0900-\u097F]/g) || []).length;
-        if (hindiChars < 12) {
-          aiAnswer = null;
-        }
-      }
-    }
-
-    if (!aiAnswer) {
-      if (effectiveLang === 'te') {
-        aiAnswer = `మీ ప్రశ్నకు ధన్యవాదాలు: "${userPrompt}"\n\nల్యాబ్ పరీక్షలు, ఉపవాస నియమాలు లేదా రక్త నమూనా సేకరణకు సంబంధించిన మరింత సమాచారం కొరకు మా ల్యాబ్ కేంద్రం లేదా మీ వైద్యుడిని సంప్రదించండి. మీ పరీక్ష నివేదికను పోర్టల్‌లో తెరవడం ద్వారా నిర్దిష్ట ఫలితాల విశ్లేషణను పొందవచ్చు.\n\n*గమనిక: ఈ సమాచారం రోగి విద్య మరియు అవగాహన కొరకు మాత్రమే. వైద్య సలహా కొరకు మీ డాక్టర్‌ను సంప్రదించండి.*`;
-      } else if (effectiveLang === 'hi') {
-        aiAnswer = `आपके प्रश्न के लिए धन्यवाद: "${userPrompt}"\n\nप्रयोगशाला परीक्षण, उपवास नियम, या नमूना संग्रह के बारे में अधिक जानकारी के लिए कृपया हमारे लैब केंद्र या अपने चिकित्सक से संपर्क करें। अपने पोर्टल में रिपोर्ट खोलकर आप विस्तृत एआई विश्लेषण देख सकते हैं।\n\n*नोट: यह जानकारी केवल रोगी शिक्षा के उद्देश्य से है। चिकित्सीय सलाह हेतु डॉक्टर से परामर्श लें।*`;
-      } else {
-        aiAnswer = `Thank you for your question: "${userPrompt}".\n\nFor questions regarding laboratory tests, fasting requirements, or specimen collection, please consult our front-desk or your treating physician. You can also view your specific report in the portal to see custom AI analyses based on your biological values.\n\n*Disclaimer: This educational tool does not substitute for a clinical consultation.*`;
-      }
-    }
-
-    return res.json({
-      success: true,
-      question: userPrompt,
-      answer: aiAnswer,
-      model,
-    });
+    const aiRes = await handleGeneralAskAI(userPrompt, lang);
+    return res.json(aiRes);
   } catch (err) {
     console.error('general-ask error:', err);
     return res.status(500).json({ error: 'Failed to process AI question' });

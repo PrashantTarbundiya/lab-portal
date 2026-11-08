@@ -25,6 +25,12 @@ export default function FloatingAICopilot({
     if (onToggle) onToggle(newState);
   };
 
+  useEffect(() => {
+    const handleOpen = () => setOpenState(true);
+    window.addEventListener('open-ai-copilot', handleOpen);
+    return () => window.removeEventListener('open-ai-copilot', handleOpen);
+  }, []);
+
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);

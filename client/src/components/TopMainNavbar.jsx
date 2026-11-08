@@ -502,9 +502,23 @@ export default function TopMainNavbar() {
           </div>
         </nav>
 
-        {/* Right Tools: Language + Role Switcher + Logout */}
+        {/* Right Tools: Language + AI Copilot + Role Switcher + Logout */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" ref={dropdownRef}>
           <LangSwitch className="inline-flex" />
+
+          {/* Instant Clinical AI Companion Button */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-ai-copilot'));
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-indigo-500/15 hover:from-purple-500/25 hover:to-indigo-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold transition cursor-pointer active:scale-95 shadow-sm"
+            title="Ask Labby (Clinical AI Diagnostic Copilot)"
+          >
+            <span className="text-purple-300">✨</span>
+            <span className="hidden sm:inline">Ask Labby AI</span>
+            <span className="sm:hidden">AI</span>
+          </button>
 
           <button
             type="button"

@@ -332,32 +332,9 @@ export async function handleOrderAskAI(order, userPrompt, lang = 'en') {
     return `- ${r.parameter}: ${r.value} ${r.unit || ''} (Range: ${r.refRangeRaw || 'Normal'}) [Status: ${r.flag || 'NORMAL'}]`;
   }).join('\n');
 
-  const systemPrompt = `You are "Labby", an empathetic clinical AI diagnostic companion for Company A Diagnostics in Vijayawada, India.
-Explain the laboratory report for Order #${order.orderNo} accurately, reassuringly, and cleanly.
-Patient: ${order.patient?.fullName || 'Patient'}
-Referring Doctor: ${order.doctor?.name || 'Attending Physician'}
-Results:
-${resultsSummary}
-
-Respond in ${effectiveLang === 'te' ? 'Telugu script (తెలుగు)' : effectiveLang === 'hi' ? 'Hindi script (हिन्दी)' : 'clear English'}.
-Highlight key terms with **bold**, use bullet points, and present comparisons in a clean markdown table.
-IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
-
-  // 1. Try OpenRouter live models
-  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, effectiveLang);
-  if (liveResult && liveResult.answer) {
-    return {
-      success: true,
-      answer: liveResult.answer,
-      model: liveResult.model,
-      orderNo: order.orderNo,
-    };
-  }
-
-  // 2. Fall back to high-grade structured clinical synthesis with real order data
-  let fallbackAnswer = '';
+  // For Indic regional languages, provide instant, authentic clinical review in native script
   if (effectiveLang === 'te') {
-    fallbackAnswer = `### ఆర్డర్ #${order.orderNo} కొరకు క్లినికల్ సమీక్ష:\n\n` +
+    const fallbackAnswer = `### ఆర్డర్ #${order.orderNo} కొరకు క్లినికల్ సమీక్ష:\n\n` +
       `రోగి పేరు: **${order.patient?.fullName || 'రోగి'}** | వైద్యులు: **${order.doctor?.name || 'హాజరైన వైద్యులు'}**\n\n` +
       (abnormalList.length > 0
         ? `మీ రిపోర్టులో ఈ క్రింది **${abnormalList.length} పరీక్షలు** సాధారణ పరిధికి భిన్నంగా ఉన్నాయి:\n\n` +
@@ -367,8 +344,17 @@ IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps,
           `\n\n**వైద్య సలహా:** మీ ఫలితాల ఆధారంగా సరైన ఆహార నియమాలు మరియు చికిత్స కొరకు దయచేసి మీ డాక్టర్‌ను సంప్రదించండి.`
         : `మీ అన్ని పరీక్ష ఫలితాలు సాధారణ జీవసంబంధ పరిధిలోనే ఉన్నాయి. ఆరోగ్యకరమైన జీవనశైలిని కొనసాగించండి.`) +
       `\n\n*గమనిక: ఈ సమాచారం రోగి విద్య కొరకు మాత్రమే. అధికారిక వైద్య నిర్ధారణ కాదు.*`;
-  } else if (effectiveLang === 'hi') {
-    fallbackAnswer = `### ऑर्डर #${order.orderNo} के लिए नैदानिक सारांश:\n\n` +
+
+    return {
+      success: true,
+      answer: fallbackAnswer,
+      model: 'CompanyA-Diagnostic-AI/v2.4',
+      orderNo: order.orderNo,
+    };
+  }
+
+  if (effectiveLang === 'hi') {
+    const fallbackAnswer = `### ऑर्डर #${order.orderNo} के लिए नैदानिक सारांश:\n\n` +
       `मरीज़: **${order.patient?.fullName || 'मरीज़'}** | चिकित्सक: **${order.doctor?.name || 'उपस्थित चिकित्सक'}**\n\n` +
       (abnormalList.length > 0
         ? `आपकी रिपोर्ट में **${abnormalList.length} पैरामीटर** सामान्य सीमा से बाहर हैं:\n\n` +
@@ -378,22 +364,52 @@ IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps,
           `\n\nकृपया इन परिणामों पर अपने चिकित्सक से सलाह लें।`
         : `आपके सभी परीक्षण परिणाम सामान्य सीमा के भीतर हैं।`) +
       `\n\n*नोट: यह जानकारी केवल रोगी शिक्षा के लिए है।*`;
-  } else {
-    fallbackAnswer = `### Clinical Assessment: Order #${order.orderNo}\n\n` +
-      `**Patient:** ${order.patient?.fullName || 'Patient'} | **Attending Physician:** ${order.doctor?.name || 'Clinical Care'}\n\n` +
-      (abnormalList.length > 0
-        ? `Your diagnostic panel identified **${abnormalList.length} out-of-range biomarker(s)**:\n\n` +
-          `| Parameter | Your Value | Reference Range | Flag |\n` +
-          `| :--- | :--- | :--- | :--- |\n` +
-          abnormalList.map(r => `| **${r.parameter}** | ${r.value} ${r.unit || ''} | ${r.refRangeRaw || 'Standard'} | **${r.flag}** |`).join('\n') +
-          `\n\n**Clinical Interpretation:**\n` +
-          abnormalList.map(r => `* **${r.parameter} (${r.value} ${r.unit || ''}):** Flagged as **${r.flag}**. This indicates a variation from the central biological reference interval.`).join('\n') +
-          `\n\n**Next Steps:**\n` +
-          `1. Share this digital summary with your treating physician at your follow-up appointment.\n` +
-          `2. Adhere to prescribed dietary guidance and recommended hydration protocols.`
-        : `All recorded biomarkers for this order are comfortably within standard biological reference intervals. Continue your healthy nutrition and activity habits.`) +
-      `\n\n*Disclaimer: This response provides educational review based on laboratory values and does not substitute for clinical medical evaluation.*`;
+
+    return {
+      success: true,
+      answer: fallbackAnswer,
+      model: 'CompanyA-Diagnostic-AI/v2.4',
+      orderNo: order.orderNo,
+    };
   }
+
+  // For English: Try live model
+  const systemPrompt = `You are "Labby", an empathetic clinical AI diagnostic companion for Company A Diagnostics in Vijayawada, India.
+Explain the laboratory report for Order #${order.orderNo} accurately, reassuringly, and cleanly.
+Patient: ${order.patient?.fullName || 'Patient'}
+Referring Doctor: ${order.doctor?.name || 'Attending Physician'}
+Results:
+${resultsSummary}
+
+Respond in clear English.
+Highlight key terms with **bold**, use bullet points, and present comparisons in a clean markdown table.
+IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps. Begin immediately with your response.`;
+
+  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, 'en');
+  if (liveResult && liveResult.answer) {
+    return {
+      success: true,
+      answer: liveResult.answer,
+      model: liveResult.model,
+      orderNo: order.orderNo,
+    };
+  }
+
+  // English fallback
+  const fallbackAnswer = `### Clinical Assessment: Order #${order.orderNo}\n\n` +
+    `**Patient:** ${order.patient?.fullName || 'Patient'} | **Attending Physician:** ${order.doctor?.name || 'Clinical Care'}\n\n` +
+    (abnormalList.length > 0
+      ? `Your diagnostic panel identified **${abnormalList.length} out-of-range biomarker(s)**:\n\n` +
+        `| Parameter | Your Value | Reference Range | Flag |\n` +
+        `| :--- | :--- | :--- | :--- |\n` +
+        abnormalList.map(r => `| **${r.parameter}** | ${r.value} ${r.unit || ''} | ${r.refRangeRaw || 'Standard'} | **${r.flag}** |`).join('\n') +
+        `\n\n**Clinical Interpretation:**\n` +
+        abnormalList.map(r => `* **${r.parameter} (${r.value} ${r.unit || ''}):** Flagged as **${r.flag}**. This indicates a variation from the central biological reference interval.`).join('\n') +
+        `\n\n**Next Steps:**\n` +
+        `1. Share this digital summary with your treating physician at your follow-up appointment.\n` +
+        `2. Adhere to prescribed dietary guidance and recommended hydration protocols.`
+      : `All recorded biomarkers for this order are comfortably within standard biological reference intervals. Continue your healthy nutrition and activity habits.`) +
+    `\n\n*Disclaimer: This response provides educational review based on laboratory values and does not substitute for clinical medical evaluation.*`;
 
   return {
     success: true,
@@ -411,15 +427,26 @@ export async function handleGeneralAskAI(userPrompt, lang = 'en') {
   const isHindi = lang === 'hi' || /[\u0900-\u097F]/.test(userPrompt) || /hindi/i.test(userPrompt);
   const effectiveLang = isTelugu ? 'te' : isHindi ? 'hi' : 'en';
 
+  // For Indic regional languages, provide deterministic, authentic native answers immediately
+  if (effectiveLang !== 'en') {
+    const answer = generateClinicalKnowledgeAnswer(userPrompt, effectiveLang);
+    return {
+      success: true,
+      question: userPrompt,
+      answer,
+      model: 'CompanyA-Diagnostic-AI/v2.4',
+    };
+  }
+
   const systemPrompt = `You are "Labby", an empathetic clinical AI diagnostic companion for Company A Diagnostics in Vijayawada, India.
 Explain the user's question clearly, helpfully, and empathetically.
 Question: "${userPrompt}"
-Target Language: ${effectiveLang === 'te' ? 'Telugu script (తెలుగు)' : effectiveLang === 'hi' ? 'Hindi script (हिन्दी)' : 'clear English'}.
+Target Language: clear English.
 Highlight key terms with **bold**, use bullet points, and present numerical ranges in clean markdown tables.
-IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
+IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps. Begin immediately with your response.`;
 
-  // 1. Try OpenRouter live models
-  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, effectiveLang);
+  // 1. Try OpenRouter live models for English
+  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, 'en');
   if (liveResult && liveResult.answer) {
     return {
       success: true,
@@ -430,7 +457,7 @@ IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps,
   }
 
   // 2. High-grade clinical synthesis
-  const answer = generateClinicalKnowledgeAnswer(userPrompt, effectiveLang);
+  const answer = generateClinicalKnowledgeAnswer(userPrompt, 'en');
   return {
     success: true,
     question: userPrompt,

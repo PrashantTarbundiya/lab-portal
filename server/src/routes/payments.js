@@ -3,11 +3,12 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { authenticate } from '../middleware/auth.js';
 import { writeLog } from '../lib/audit.js';
+import { appointmentsStore } from './hospitals.js';
 
 const router = Router();
 
-const keyId = process.env.RAZORPAY_KEY_ID || '';
-const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
+const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_DemoPortal2026';
+const keySecret = process.env.RAZORPAY_KEY_SECRET || 'demo_secret_2026';
 
 let razorpay = null;
 if (keyId && keySecret) {
@@ -119,6 +120,17 @@ router.post('/razorpay/verify', authenticate, async (req, res) => {
         verified: false,
         error: 'Invalid Razorpay payment signature',
       });
+    }
+
+    if (appointmentId && appointmentsStore) {
+      const apt = appointmentsStore.find(a => a.id === appointmentId || a.tokenNo === appointmentId);
+      if (apt) {
+        apt.paymentStatus = 'PAID_ONLINE';
+        apt.paymentMethod = 'ONLINE_RAZORPAY';
+        apt.paymentTxnId = razorpay_payment_id;
+        apt.paidAt = new Date().toISOString();
+        apt.qrCodeData = `TOKEN:${apt.tokenNo}|UHID:${apt.uhid}|FACILITY:${apt.hospitalId}|PAY:PAID_ONLINE|ORDER:${apt.orderNo || 'N/A'}`;
+      }
     }
 
     return res.json({

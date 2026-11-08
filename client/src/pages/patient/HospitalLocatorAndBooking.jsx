@@ -497,20 +497,23 @@ export default function HospitalLocatorAndBooking() {
       upiId: 'companya.care@hdfcbank',
     };
 
-    // Attempt live Razorpay Standard Checkout popup if script is active
-    if (typeof window !== 'undefined' && window.Razorpay) {
-      try {
-        const orderRes = await api('/payments/razorpay/order', {
-          method: 'POST',
-          body: {
-            amount: fee,
-            hospitalId: facility?.id,
-            serviceType: targetApt ? targetApt.type : bookingType,
-          },
-        }).catch(() => null);
+    // Check if real live or test Razorpay key is configured
+    const orderRes = await api('/payments/razorpay/order', {
+      method: 'POST',
+      body: {
+        amount: fee,
+        hospitalId: facility?.id,
+        serviceType: targetApt ? targetApt.type : bookingType,
+      },
+    }).catch(() => null);
 
+    const activeKey = orderRes?.keyId || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || '';
+    const hasRealRazorpayKey = activeKey && !activeKey.includes('DemoPortal') && activeKey.startsWith('rzp_');
+
+    if (hasRealRazorpayKey && typeof window !== 'undefined' && window.Razorpay) {
+      try {
         const rzp = new window.Razorpay({
-          key: orderRes?.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || '',
+          key: activeKey,
           amount: (orderRes?.order?.amount) || (fee * 100),
           currency: 'INR',
           name: hospAccount.entityName || facility?.name || 'Company A Diagnostics & Hospitals',
@@ -526,6 +529,8 @@ export default function HospitalLocatorAndBooking() {
             color: '#0F5E57',
           },
           handler: async (resp) => {
+            const txnId = resp.razorpay_payment_id || `pay_rzp_${Date.now()}`;
+
             await api('/payments/razorpay/verify', {
               method: 'POST',
               body: {
@@ -534,9 +539,12 @@ export default function HospitalLocatorAndBooking() {
               },
             }).catch(() => null);
 
-            const txnId = resp.razorpay_payment_id || `pay_rzp_${Date.now()}`;
-
             if (targetApt) {
+              await api(`/hospitals/appointments/${targetApt.id}/pay`, {
+                method: 'PATCH',
+                body: { paymentMethod: 'ONLINE_RAZORPAY', paymentTxnId: txnId },
+              }).catch(() => null);
+
               setAppointments((prev) =>
                 prev.map((a) =>
                   a.id === targetApt.id
@@ -551,6 +559,7 @@ export default function HospitalLocatorAndBooking() {
               );
               addToast(`Payment of ₹${fee} settled via Razorpay (${txnId})!`, 'success');
               setTargetAppointmentForRazorpay(null);
+              fetchData();
             } else {
               await handleConfirmBooking({
                 paymentMethod: 'ONLINE_RAZORPAY',
@@ -573,7 +582,7 @@ export default function HospitalLocatorAndBooking() {
       }
     }
 
-    // Resilient fallback: open custom Razorpay gateway modal
+    // High-fidelity integrated Razorpay Test Mode Gateway
     if (targetApt) {
       setTargetAppointmentForRazorpay(targetApt);
     }
@@ -582,13 +591,29 @@ export default function HospitalLocatorAndBooking() {
 
   const handleSimulateRazorpaySuccess = async () => {
     setIsProcessingPayment(true);
-    await new Promise((res) => setTimeout(res, 1200));
+    await new Promise((res) => setTimeout(res, 900));
     setIsProcessingPayment(false);
 
     const generatedTxnId = `pay_rzp_${Math.floor(10000000 + Math.random() * 90000000)}`;
 
     if (targetAppointmentForRazorpay) {
-      // Settle payment online for an existing appointment booked earlier
+      // Settle payment online with backend persistence
+      await api(`/hospitals/appointments/${targetAppointmentForRazorpay.id}/pay`, {
+        method: 'PATCH',
+        body: {
+          paymentMethod: 'ONLINE_RAZORPAY',
+          paymentTxnId: generatedTxnId,
+        },
+      }).catch(() => null);
+
+      await api('/payments/razorpay/verify', {
+        method: 'POST',
+        body: {
+          razorpay_payment_id: generatedTxnId,
+          appointmentId: targetAppointmentForRazorpay.id,
+        },
+      }).catch(() => null);
+
       setAppointments((prev) =>
         prev.map((a) =>
           a.id === targetAppointmentForRazorpay.id
@@ -607,6 +632,7 @@ export default function HospitalLocatorAndBooking() {
       );
       setIsRazorpayModalOpen(false);
       setTargetAppointmentForRazorpay(null);
+      fetchData();
     } else {
       await handleConfirmBooking({
         paymentMethod: 'ONLINE_RAZORPAY',

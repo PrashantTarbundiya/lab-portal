@@ -1256,12 +1256,51 @@ router.post('/appointments', authenticate, async (req, res) => {
     detail: `Online booking confirmed: ${tokenNo} at ${facility.name} for ${patientName} (${paymentStatus} - routed to ${hospitalBankAccount.entityName})`,
     req,
   }).catch(() => { });
-  hy
+
   return res.status(201).json({
     success: true,
     message: `Appointment booked successfully! Payment routed to ${hospitalBankAccount.entityName}. Token #${tokenNo} confirmed.`,
     appointment: newAppointment,
   });
+});
+
+// PATCH /api/hospitals/appointments/:id/pay — Settle payment online via Razorpay
+router.patch('/appointments/:id/pay', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod = 'ONLINE_RAZORPAY', paymentTxnId } = req.body;
+
+    const apt = appointmentsStore.find(a => a.id === id || a.tokenNo === id);
+    if (!apt) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    const txnId = paymentTxnId || `pay_rzp_${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    apt.paymentStatus = 'PAID_ONLINE';
+    apt.paymentMethod = paymentMethod;
+    apt.paymentTxnId = txnId;
+    apt.paidAt = new Date().toISOString();
+    apt.qrCodeData = `TOKEN:${apt.tokenNo}|UHID:${apt.uhid}|FACILITY:${apt.hospitalId}|PAY:PAID_ONLINE|ORDER:${apt.orderNo || 'N/A'}`;
+
+    await writeLog({
+      actorType: 'PATIENT',
+      accountId: req.dbAccount?.id,
+      action: 'TASK_DONE',
+      outcome: 'OK',
+      detail: `Appointment ${apt.tokenNo} payment settled via ${paymentMethod} (${txnId})`,
+      req,
+    }).catch(() => {});
+
+    return res.json({
+      success: true,
+      message: `Payment of ₹${apt.fee} settled successfully via Razorpay.`,
+      appointment: apt,
+    });
+  } catch (err) {
+    console.error('Error settling appointment payment:', err);
+    return res.status(500).json({ error: 'Failed to settle appointment payment' });
+  }
 });
 
 export { hospitalNetwork, appointmentsStore };

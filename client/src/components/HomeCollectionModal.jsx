@@ -142,20 +142,24 @@ export default function HomeCollectionModal({ isOpen, onClose, defaultPatientNam
 
   const handleOpenLiveRazorpay = async () => {
     const rawPrice = Number(selectedPkg.price.replace(/[^\d]/g, '')) || 450;
-    if (typeof window !== 'undefined' && window.Razorpay) {
-      try {
-        const orderRes = await api('/payments/razorpay/order', {
-          method: 'POST',
-          body: {
-            amount: rawPrice,
-            receipt: `rcpt_hc_${Date.now()}`,
-            serviceType: 'HOME_SAMPLE_COLLECTION',
-          },
-          token,
-        }).catch(() => null);
 
+    const orderRes = await api('/payments/razorpay/order', {
+      method: 'POST',
+      body: {
+        amount: rawPrice,
+        receipt: `rcpt_hc_${Date.now()}`,
+        serviceType: 'HOME_SAMPLE_COLLECTION',
+      },
+      token,
+    }).catch(() => null);
+
+    const activeKey = orderRes?.keyId || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || '';
+    const hasRealRazorpayKey = activeKey && !activeKey.includes('DemoPortal') && activeKey.startsWith('rzp_');
+
+    if (hasRealRazorpayKey && typeof window !== 'undefined' && window.Razorpay) {
+      try {
         const rzp = new window.Razorpay({
-          key: orderRes?.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || '',
+          key: activeKey,
           amount: (orderRes?.order?.amount) || (rawPrice * 100),
           currency: 'INR',
           name: 'Company A Diagnostics',

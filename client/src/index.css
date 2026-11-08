@@ -19,6 +19,8 @@
     background-color: #07151f;
     color: #d6e4f4;
     min-height: 100vh;
+    overflow-x: hidden;
+    max-width: 100vw;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

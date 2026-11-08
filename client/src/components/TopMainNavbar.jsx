@@ -59,6 +59,12 @@ export default function TopMainNavbar() {
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [currentPath]);
 
   // Extract active hospital slug from URL if present, or fallback to saved / default
   const pathParts = currentPath.split('/').filter(Boolean);
@@ -248,8 +254,8 @@ export default function TopMainNavbar() {
           </div>
         </div>
 
-        {/* Center: Core Tasks Navigation Pills */}
-        <nav className="flex items-center gap-1 shrink-0 flex-wrap">
+        {/* Center: Core Tasks Navigation Pills (Desktop XL Screens) */}
+        <nav className="hidden xl:flex items-center gap-1 shrink-0">
           {/* 1. FRONT DESK */}
           <Link
             to={`/${activeHospitalSlug}/front-desk`}
@@ -502,8 +508,8 @@ export default function TopMainNavbar() {
           </div>
         </nav>
 
-        {/* Right Tools: Language + AI Copilot + Role Switcher + Logout */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" ref={dropdownRef}>
+        {/* Right Tools: Language + AI Copilot + Role Switcher + Logout (Desktop) */}
+        <div className="hidden lg:flex items-center gap-1.5 sm:gap-2 shrink-0" ref={dropdownRef}>
           <LangSwitch className="inline-flex" />
 
           {/* Instant Clinical AI Companion Button */}
@@ -618,7 +624,285 @@ export default function TopMainNavbar() {
             </div>
           )}
         </div>
+
+        {/* Mobile Header Right Controls (< lg screens) */}
+        <div className="flex lg:hidden items-center gap-1 sm:gap-2 shrink-0">
+          <LangSwitch className="inline-flex" />
+
+          {/* Quick AI Trigger */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-ai-copilot'))}
+            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-indigo-500/15 text-purple-300 border border-purple-500/30 text-xs font-semibold active:scale-95 transition"
+            title="Ask Labby AI"
+          >
+            <span>✨</span>
+            <span className="text-[11px] font-bold">AI</span>
+          </button>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`p-1.5 sm:p-2 rounded-lg border transition-all cursor-pointer active:scale-95 flex items-center justify-center ${
+              isMobileMenuOpen
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
+                : 'bg-white/5 text-slate-200 border-white/10 hover:bg-white/10'
+            }`}
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? (
+              <svg className="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* ─── Mobile Navigation Drawer (< lg screens) ─── */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden border-t border-white/10 bg-[#07151f]/98 backdrop-blur-2xl max-h-[85vh] overflow-y-auto px-3.5 py-4 space-y-4 shadow-2xl animate-fadeIn text-slate-100">
+          {/* 1. Mobile Facility Switcher */}
+          <div>
+            <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>Active Facility / Hospital</span>
+              <span className="text-emerald-400 font-mono text-[9px]">{activeHospital.badge}</span>
+            </div>
+            <select
+              value={activeHospitalSlug}
+              onChange={(e) => {
+                handleHospitalChange(e.target.value);
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full bg-[#0d2232] border border-white/15 text-slate-100 font-medium text-xs rounded-xl p-2.5 focus:outline-none focus:border-emerald-400 cursor-pointer shadow-inner"
+            >
+              {HOSPITALS.map((hosp) => (
+                <option key={hosp.slug} value={hosp.slug} className="bg-[#07151f] text-slate-100 font-sans">
+                  {hosp.name} ({hosp.badge})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. 1-Click Role Switcher */}
+          <div>
+            <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>1-Tap Persona Switcher</span>
+              <span className="text-emerald-400 text-[9px]">Demo Personas</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {quickRoles.map((role) => (
+                <button
+                  key={role.id}
+                  onClick={() => {
+                    handleQuickLogin(role);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-left p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col justify-between transition active:scale-95 cursor-pointer shadow-sm"
+                >
+                  <span className="text-[11px] font-bold text-white truncate block">{role.label.split('(')[0]}</span>
+                  <span className="text-[9px] text-emerald-400 font-mono mt-0.5">{role.badge}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Navigation Links */}
+          <div className="space-y-1.5 pt-1">
+            <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Core Portal Pages
+            </div>
+
+            <Link
+              to="/profiles"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                isPatientActive
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">👤</span>
+                <div>
+                  <div className="text-xs font-semibold">Patient Family Vault</div>
+                  <div className="text-[10px] text-slate-400">Reports, family profiles, ABHA card</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to={`/${activeHospitalSlug}/front-desk`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                isFrontDeskActive
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">📋</span>
+                <div>
+                  <div className="text-xs font-semibold">Front-Desk Reception</div>
+                  <div className="text-[10px] text-slate-400">New bookings, token queue, billing</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to={`/${activeHospitalSlug}/lab-tasks`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                isLabTasksActive
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">🧪</span>
+                <div>
+                  <div className="text-xs font-semibold">Lab Tasks & Testing Pipeline</div>
+                  <div className="text-[10px] text-slate-400">LIS specimens, barcode verification</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to={`/${activeHospitalSlug}/doctor/${activeHospital.defaultDoctor}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                isDoctorActive
+                  ? 'bg-teal-500/15 border-teal-500/30 text-teal-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">🩺</span>
+                <div>
+                  <div className="text-xs font-semibold">Doctor Console</div>
+                  <div className="text-[10px] text-slate-400">Critical held queue & verification</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to={`/${activeHospitalSlug}/admin`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                isHospitalAdminActive
+                  ? 'bg-purple-500/15 border-purple-500/30 text-purple-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">🏥</span>
+                <div>
+                  <div className="text-xs font-semibold">Hospital Superintendent</div>
+                  <div className="text-[10px] text-slate-400">Department metrics & hospital ops</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition ${
+                currentPath === '/admin'
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 font-bold'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">👑</span>
+                <div>
+                  <div className="text-xs font-semibold">Super Admin (CMO Hub)</div>
+                  <div className="text-[10px] text-slate-400">Network-wide oversight (6 facilities)</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to="/book-appointment"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">📍</span>
+                <div>
+                  <div className="text-xs font-semibold">Hospital Locator & OPD Booking</div>
+                  <div className="text-[10px] text-slate-400">Find centers & pay online via Razorpay</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to="/access-logs"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">🔒</span>
+                <div>
+                  <div className="text-xs font-semibold">DPDP / HIPAA Access Logs</div>
+                  <div className="text-[10px] text-slate-400">Tamper-evident audit ledger</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+
+            <Link
+              to="/operations-report"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">📊</span>
+                <div>
+                  <div className="text-xs font-semibold">Operations & SLA Metrics</div>
+                  <div className="text-[10px] text-slate-400">Turnaround time & laboratory volume</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-400">→</span>
+            </Link>
+          </div>
+
+          {/* 4. Logout / Session info */}
+          <div className="pt-2 border-t border-white/10">
+            <button
+              type="button"
+              onClick={async () => {
+                setIsMobileMenuOpen(false);
+                try {
+                  localStorage.removeItem('portal_token');
+                  await logout();
+                } catch {
+                  localStorage.removeItem('portal_token');
+                }
+                addToast('Signed out successfully', 'info');
+                navigate('/');
+              }}
+              className="w-full p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-rose-500/25 transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Sign Out of Portal</span>
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

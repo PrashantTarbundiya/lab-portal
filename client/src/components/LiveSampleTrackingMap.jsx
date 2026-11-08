@@ -211,18 +211,18 @@ export default function LiveSampleTrackingMap({
     <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-xl">
       <div ref={mapContainerRef} style={{ height, width: '100%' }} />
 
-      {/* Floating HUD Telemetry Badge */}
-      <div className="absolute top-3 left-3 z-[1000] glass-card px-3.5 py-2 rounded-2xl border border-white/20 shadow-2xl flex items-center gap-3 backdrop-blur-xl text-xs">
+      {/* Floating HUD Telemetry Badge (Responsive Wrap for Mobile) */}
+      <div className="absolute top-2 left-2 right-2 sm:right-auto sm:top-3 sm:left-3 z-[1000] glass-card px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-white/20 shadow-2xl flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 backdrop-blur-xl text-[11px] sm:text-xs">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
           <span className="font-mono font-black text-emerald-300">LIVE GPS</span>
         </div>
-        <div className="h-4 w-px bg-white/20"></div>
+        <div className="hidden sm:block h-4 w-px bg-white/20"></div>
         <div className="flex items-center gap-1">
           <span className="text-slate-300">ETA:</span>
           <strong className="text-white font-mono font-bold">{etaMinutes} mins</strong>
         </div>
-        <div className="h-4 w-px bg-white/20"></div>
+        <div className="hidden sm:block h-4 w-px bg-white/20"></div>
         <div className="flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v18m0-18l3 3m-3-3l-3 3m0 12l3 3m-3-3l-3-3m-6-6h18m-18 0l3 3m-3-3l3-3m12 0l3 3m-3-3l-3 3" />

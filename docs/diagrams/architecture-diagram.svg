@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" width="100%" height="100%" style="background:#0F172A; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <filter id="cardGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0F5E57"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Title Banner -->
+  <rect x="30" y="25" width="1040" height="70" rx="12" fill="url(#headerGrad)" filter="url(#cardGlow)"/>
+  <text x="50" y="65" fill="#FFFFFF" font-size="22" font-weight="700">Company A Diagnostics — End-to-End System Architecture</text>
+  <text x="50" y="85" fill="#CCFBF1" font-size="13">High-Availability Containerized Deployment on AWS EC2 (Docker Compose, Nginx Reverse Proxy, PERN Stack)</text>
+
+  <!-- COLUMN 1: End Users & Handsets -->
+  <rect x="30" y="115" width="220" height="630" rx="14" fill="#1E293B" stroke="#334155" stroke-width="2" filter="url(#cardGlow)"/>
+  <rect x="45" y="130" width="190" height="32" rx="8" fill="#0F5E57"/>
+  <text x="140" y="152" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">1. END USERS</text>
+
+  <!-- Patient Card -->
+  <rect x="45" y="180" width="190" height="150" rx="10" fill="#0F172A" stroke="#14B8A6" stroke-width="1.5"/>
+  <rect x="55" y="190" width="34" height="34" rx="8" fill="#14B8A6"/>
+  <text x="72" y="213" fill="#FFFFFF" font-size="18" text-anchor="middle">📱</text>
+  <text x="98" y="206" fill="#F8FAFC" font-size="14" font-weight="700">Patients &amp; Families</text>
+  <text x="98" y="222" fill="#94A3B8" font-size="11">Mobile Safari / Chrome</text>
+  <text x="55" y="250" fill="#CBD5E1" font-size="11">• 72h Expiring OTP Link</text>
+  <text x="55" y="270" fill="#CBD5E1" font-size="11">• Telugu (తెలుగు) / Hindi</text>
+  <text x="55" y="290" fill="#CBD5E1" font-size="11">• Family Profile Switcher</text>
+  <text x="55" y="310" fill="#CBD5E1" font-size="11">• "This is not for me" button</text>
+
+  <!-- Front Desk Card -->
+  <rect x="45" y="350" width="190" height="150" rx="10" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+  <rect x="55" y="360" width="34" height="34" rx="8" fill="#0284C7"/>
+  <text x="72" y="383" fill="#FFFFFF" font-size="18" text-anchor="middle">💻</text>
+  <text x="98" y="376" fill="#F8FAFC" font-size="14" font-weight="700">Front-Desk Staff</text>
+  <text x="98" y="392" fill="#94A3B8" font-size="11">Desktop Web Console</text>
+  <text x="55" y="420" fill="#CBD5E1" font-size="11">• Instant Patient Search</text>
+  <text x="55" y="440" fill="#CBD5E1" font-size="11">• Resend Link (Rate Limited)</text>
+  <text x="55" y="460" fill="#CBD5E1" font-size="11">• Masked Phone Reveal</text>
+  <text x="55" y="480" fill="#CBD5E1" font-size="11">• Critical Callback Clearance</text>
+
+  <!-- Referring Doctor Card -->
+  <rect x="45" y="520" width="190" height="135" rx="10" fill="#0F172A" stroke="#A855F7" stroke-width="1.5"/>
+  <rect x="55" y="530" width="34" height="34" rx="8" fill="#7E22CE"/>
+  <text x="72" y="553" fill="#FFFFFF" font-size="18" text-anchor="middle">🩺</text>
+  <text x="98" y="546" fill="#F8FAFC" font-size="14" font-weight="700">Referring Doctors</text>
+  <text x="98" y="562" fill="#94A3B8" font-size="11">Clinical Portal</text>
+  <text x="55" y="590" fill="#CBD5E1" font-size="11">• 90-Day Referred Patient List</text>
+  <text x="55" y="610" fill="#CBD5E1" font-size="11">• Parameter Abnormality View</text>
+  <text x="55" y="630" fill="#CBD5E1" font-size="11">• 1-Click PDF Report Access</text>
+
+  <!-- Operations Head Card -->
+  <rect x="45" y="670" width="190" height="60" rx="10" fill="#0F172A" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="55" y="695" fill="#F8FAFC" font-size="12" font-weight="700">Operations Head / Pathologist</text>
+  <text x="55" y="715" fill="#94A3B8" font-size="11">Access Log Export &amp; 50-Summary Weekly Review</text>
+
+  <!-- COLUMN 2: Nginx & Frontend SPA -->
+  <rect x="280" y="115" width="240" height="630" rx="14" fill="#1E293B" stroke="#334155" stroke-width="2" filter="url(#cardGlow)"/>
+  <rect x="295" y="130" width="210" height="32" rx="8" fill="#0F5E57"/>
+  <text x="400" y="152" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">2. CLIENT TIER (PORT 80 / 5173)</text>
+
+  <!-- Nginx Box -->
+  <rect x="295" y="180" width="210" height="100" rx="10" fill="#0F172A" stroke="#22C55E" stroke-width="1.5"/>
+  <text x="310" y="205" fill="#22C55E" font-size="13" font-weight="700">Nginx Alpine Gateway (Port 80)</text>
+  <text x="310" y="225" fill="#CBD5E1" font-size="11">• Static Asset Caching (30 Days)</text>
+  <text x="310" y="243" fill="#CBD5E1" font-size="11">• Gzip Compression Engine</text>
+  <text x="310" y="261" fill="#CBD5E1" font-size="11">• Reverse Proxy: /api/* → Node.js</text>
+
+  <!-- React SPA Box -->
+  <rect x="295" y="295" width="210" height="435" rx="10" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+  <text x="310" y="320" fill="#38BDF8" font-size="14" font-weight="700">React 18 + Vite SPA</text>
+  <text x="310" y="338" fill="#94A3B8" font-size="11">Zero external UI bloat (Tailwind CSS)</text>
+
+  <rect x="305" y="355" width="190" height="70" rx="6" fill="#1E293B"/>
+  <text x="315" y="375" fill="#F8FAFC" font-size="12" font-weight="700">Routing &amp; Nav Context</text>
+  <text x="315" y="393" fill="#94A3B8" font-size="10">• React Router v7 with Guards</text>
+  <text x="315" y="408" fill="#94A3B8" font-size="10">• Role Switcher &amp; TopMainNavbar</text>
+
+  <rect x="305" y="435" width="190" height="70" rx="6" fill="#1E293B"/>
+  <text x="315" y="455" fill="#F8FAFC" font-size="12" font-weight="700">Indic Language Engine</text>
+  <text x="315" y="473" fill="#94A3B8" font-size="10">• English | తెలుగు | हिन्दी</text>
+  <text x="315" y="488" fill="#94A3B8" font-size="10">• Relaxed 1.8 Line Height for Conjuncts</text>
+
+  <rect x="305" y="515" width="190" height="70" rx="6" fill="#1E293B"/>
+  <text x="315" y="535" fill="#F8FAFC" font-size="12" font-weight="700">Mobile Accessibility (Elderly UX)</text>
+  <text x="315" y="553" fill="#94A3B8" font-size="10">• 48px Min Tap Targets</text>
+  <text x="315" y="568" fill="#94A3B8" font-size="10">• 18px Base Font, High Contrast</text>
+
+  <rect x="305" y="595" width="190" height="120" rx="6" fill="#1E293B"/>
+  <text x="315" y="615" fill="#F8FAFC" font-size="12" font-weight="700">Core Client Views</text>
+  <text x="315" y="632" fill="#94A3B8" font-size="10">• LandingGate (/r/:token)</text>
+  <text x="315" y="647" fill="#94A3B8" font-size="10">• PatientLogin &amp; ProfilePicker</text>
+  <text x="315" y="662" fill="#94A3B8" font-size="10">• ReportDetail &amp; PDF View</text>
+  <text x="315" y="677" fill="#94A3B8" font-size="10">• StaffConsole &amp; TaskModal</text>
+  <text x="315" y="692" fill="#94A3B8" font-size="10">• DoctorPortal &amp; ImportTool</text>
+
+  <!-- COLUMN 3: Express Backend -->
+  <rect x="550" y="115" width="250" height="630" rx="14" fill="#1E293B" stroke="#334155" stroke-width="2" filter="url(#cardGlow)"/>
+  <rect x="565" y="130" width="220" height="32" rx="8" fill="#0F5E57"/>
+  <text x="675" y="152" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">3. BACKEND API (PORT 3000)</text>
+
+  <rect x="565" y="180" width="220" height="135" rx="10" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="580" y="205" fill="#F59E0B" font-size="13" font-weight="700">Middleware &amp; Security Layer</text>
+  <text x="580" y="225" fill="#CBD5E1" font-size="11">• Bearer Token &amp; Supabase Auth</text>
+  <text x="580" y="243" fill="#CBD5E1" font-size="11">• Role Guards: Patient, Staff, Doctor</text>
+  <text x="580" y="261" fill="#CBD5E1" font-size="11">• Rate Limiter (Max 3 Resends/Day)</text>
+  <text x="580" y="279" fill="#CBD5E1" font-size="11">• Zod Schema Input Validator</text>
+  <text x="580" y="297" fill="#CBD5E1" font-size="11">• DPDP Audit Logger (writeLog)</text>
+
+  <rect x="565" y="325" width="220" height="175" rx="10" fill="#0F172A" stroke="#10B981" stroke-width="1.5"/>
+  <text x="580" y="350" fill="#10B981" font-size="13" font-weight="700">Core Services &amp; Pipelines</text>
+  <text x="580" y="370" fill="#CBD5E1" font-size="11">• LIS CSV Streaming Parser</text>
+  <text x="580" y="388" fill="#CBD5E1" font-size="11">• Clinical Rules Engine (ranges.js)</text>
+  <text x="580" y="406" fill="#CBD5E1" font-size="11">• 11 Critical Rules (critical.js)</text>
+  <text x="580" y="424" fill="#CBD5E1" font-size="11">• Critical Hold &amp; Callback Trigger</text>
+  <text x="580" y="442" fill="#CBD5E1" font-size="11">• 72h Token Cryptography (tokens.js)</text>
+  <text x="580" y="460" fill="#CBD5E1" font-size="11">• On-the-Fly PDF Engine (pdf-lib)</text>
+  <text x="580" y="478" fill="#CBD5E1" font-size="11">• Mock Outbox (WhatsApp / SMS)</text>
+
+  <rect x="565" y="510" width="220" height="220" rx="10" fill="#0F172A" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="580" y="535" fill="#EC4899" font-size="13" font-weight="700">AI Medical Summary Pipeline</text>
+  <text x="580" y="555" fill="#CBD5E1" font-size="11">• 13 Locked Outpatient Templates</text>
+  <text x="580" y="573" fill="#94A3B8" font-size="10">  (0ms, 100% Deterministic)</text>
+  <text x="580" y="593" fill="#CBD5E1" font-size="11">• AI Input Regex Whitelist</text>
+  <text x="580" y="611" fill="#CBD5E1" font-size="11">• OpenRouter LLM Call (Temp 0)</text>
+  <text x="580" y="629" fill="#CBD5E1" font-size="11">• Multi-Stage Output Guard:</text>
+  <text x="595" y="647" fill="#94A3B8" font-size="10">- No invented numbers</text>
+  <text x="595" y="663" fill="#94A3B8" font-size="10">- Banned word filter (cancer, etc.)</text>
+  <text x="595" y="679" fill="#94A3B8" font-size="10">- Word count &lt;= 30</text>
+  <text x="580" y="700" fill="#CBD5E1" font-size="11">• Deterministic Safe Fallback</text>
+
+  <!-- COLUMN 4: Data & External Layer -->
+  <rect x="830" y="115" width="240" height="630" rx="14" fill="#1E293B" stroke="#334155" stroke-width="2" filter="url(#cardGlow)"/>
+  <rect x="845" y="130" width="210" height="32" rx="8" fill="#0F5E57"/>
+  <text x="950" y="152" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">4. DATA &amp; INFRASTRUCTURE</text>
+
+  <!-- PostgreSQL Box -->
+  <rect x="845" y="180" width="210" height="190" rx="10" fill="#0F172A" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="860" y="205" fill="#3B82F6" font-size="13" font-weight="700">PostgreSQL 16 (Prisma ORM)</text>
+  <text x="860" y="225" fill="#CBD5E1" font-size="11">• Dedicated Docker Container</text>
+  <text x="860" y="243" fill="#CBD5E1" font-size="11">• HMAC-SHA256 Phone Indexing</text>
+  <text x="860" y="261" fill="#CBD5E1" font-size="11">• 12 Relational Tables:</text>
+  <text x="870" y="280" fill="#94A3B8" font-size="10">Account, Patient, Doctor, Order,</text>
+  <text x="870" y="296" fill="#94A3B8" font-size="10">Result, Summary, SummaryFlag,</text>
+  <text x="870" y="312" fill="#94A3B8" font-size="10">LinkToken, CallbackTask, Message,</text>
+  <text x="870" y="328" fill="#94A3B8" font-size="10">AccessLog, ImportRun</text>
+  <text x="860" y="352" fill="#10B981" font-size="11">✓ Pooled connection (20 max)</text>
+
+  <!-- Cloud Infrastructure Box -->
+  <rect x="845" y="380" width="210" height="150" rx="10" fill="#0F172A" stroke="#F97316" stroke-width="1.5"/>
+  <text x="860" y="405" fill="#F97316" font-size="13" font-weight="700">AWS EC2 Hosting (Mumbai / 24/7)</text>
+  <text x="860" y="425" fill="#CBD5E1" font-size="11">• t3.micro Ubuntu 24.04 LTS</text>
+  <text x="860" y="443" fill="#CBD5E1" font-size="11">• 2GB Configured Swap Memory</text>
+  <text x="860" y="461" fill="#CBD5E1" font-size="11">• DPDP Indian Data Sovereignty</text>
+  <text x="860" y="479" fill="#CBD5E1" font-size="11">• Automated Healthcheck Keep-Alive</text>
+  <text x="860" y="497" fill="#CBD5E1" font-size="11">• Ports 22, 80, 443, 3000, 5173</text>
+
+  <!-- External AI & Integrations Box -->
+  <rect x="845" y="540" width="210" height="190" rx="10" fill="#0F172A" stroke="#A855F7" stroke-width="1.5"/>
+  <text x="860" y="565" fill="#A855F7" font-size="13" font-weight="700">Integrations &amp; Outside Systems</text>
+  <text x="860" y="585" fill="#CBD5E1" font-size="11">• OpenRouter AI API</text>
+  <text x="870" y="603" fill="#94A3B8" font-size="10">(NVIDIA Nemotron / Claude)</text>
+  <text x="860" y="623" fill="#CBD5E1" font-size="11">• Meta WhatsApp Cloud API Ready</text>
+  <text x="870" y="641" fill="#94A3B8" font-size="10">(MockProvider in Dev/Demo)</text>
+  <text x="860" y="661" fill="#CBD5E1" font-size="11">• Razorpay Payment Gateway</text>
+  <text x="870" y="679" fill="#94A3B8" font-size="10">(Pre-configured keys in ENV)</text>
+  <text x="860" y="701" fill="#CBD5E1" font-size="11">• Supabase Auth &amp; Session Store</text>
+
+  <!-- CONNECTING ARROWS -->
+  <path d="M 235 255 L 295 230" fill="none" stroke="#14B8A6" stroke-width="2"/>
+  <path d="M 235 425 L 295 425" fill="none" stroke="#38BDF8" stroke-width="2"/>
+  <path d="M 235 580 L 295 540" fill="none" stroke="#A855F7" stroke-width="2"/>
+  <path d="M 495 240 L 565 240" fill="none" stroke="#22C55E" stroke-width="2.5"/>
+  <path d="M 495 480 L 565 480" fill="none" stroke="#38BDF8" stroke-width="2"/>
+  <path d="M 775 270 L 845 270" fill="none" stroke="#3B82F6" stroke-width="2.5"/>
+  <path d="M 775 620 L 845 620" fill="none" stroke="#A855F7" stroke-width="2"/>
+</svg>

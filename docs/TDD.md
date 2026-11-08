@@ -65,6 +65,9 @@ Every technical and architectural assumption is documented below with its identi
 
 ## 3. Architecture & Technical Rationale
 
+### 3.1 Visual System Architecture Diagram
+![System Architecture Diagram](diagrams/architecture-diagram.svg)
+
 ```mermaid
 flowchart TD
     subgraph Users["End Users"]
@@ -117,6 +120,9 @@ flowchart TD
 ---
 
 ## 4. Data Model (Entity Relationship Diagram)
+
+### 4.1 Visual Entity-Relationship Diagram
+![Entity Relationship Diagram](diagrams/erd-diagram.svg)
 
 ```mermaid
 erDiagram
@@ -199,7 +205,10 @@ erDiagram
 
 ---
 
-## 5. Main Workflows (Sequence Diagrams)
+## 5. Main Workflows (Sequence & State Machine)
+
+### 5.0 Visual Clinical Workflow & State Machine
+![Clinical Workflow Diagram](diagrams/workflow-diagram.svg)
 
 ### 5.1 Import → Atomic Sign-Off → Link → Message
 ```mermaid
@@ -303,6 +312,9 @@ sequenceDiagram
 ---
 
 ## 6. Plain-Language AI Summary Pipeline & Safety Guards
+
+### 6.1 Visual AI Pipeline & Multi-Tier Safety Guardrails
+![AI Guardrails Pipeline Diagram](diagrams/ai-pipeline-diagram.svg)
 
 ```mermaid
 flowchart TD

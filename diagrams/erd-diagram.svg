@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 820" width="100%" height="100%" style="background:#0F172A; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <filter id="erdGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Header -->
+  <rect x="30" y="20" width="1040" height="60" rx="10" fill="#0F5E57" filter="url(#erdGlow)"/>
+  <text x="50" y="55" fill="#FFFFFF" font-size="20" font-weight="700">Relational Data Model (PostgreSQL 16 &amp; Prisma ORM)</text>
+  <text x="650" y="55" fill="#CCFBF1" font-size="13">DPDP Act 2023 Compliant • SHA-256 Hashes • Append-Only Logs</text>
+
+  <!-- TABLE 1: Account -->
+  <g transform="translate(40, 100)" filter="url(#erdGlow)">
+    <rect width="210" height="170" rx="8" fill="#1E293B" stroke="#14B8A6" stroke-width="2"/>
+    <rect width="210" height="30" rx="8" fill="#0F5E57"/>
+    <text x="105" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Account (Shared Phone)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F8FAFC" font-size="11">mobileE164: String [UK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">mobileHash: String [INDEX]</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">preferredLang: Lang (en/te/hi)</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">consentAt: DateTime</text>
+    <text x="15" y="152" fill="#F8FAFC" font-size="11">consentVersion: String</text>
+  </g>
+
+  <!-- TABLE 2: Patient -->
+  <g transform="translate(300, 100)" filter="url(#erdGlow)">
+    <rect width="210" height="150" rx="8" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+    <rect width="210" height="30" rx="8" fill="#0284C7"/>
+    <text x="105" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Patient (Profile)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 accountId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">fullName: String</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">sex: Sex (M/F/OTHER)</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">relation: Relation (SELF/CHILD...)</text>
+  </g>
+
+  <!-- TABLE 3: Doctor -->
+  <g transform="translate(560, 100)" filter="url(#erdGlow)">
+    <rect width="210" height="130" rx="8" fill="#1E293B" stroke="#A855F7" stroke-width="2"/>
+    <rect width="210" height="30" rx="8" fill="#7E22CE"/>
+    <text x="105" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Doctor (Referring)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F8FAFC" font-size="11">name: String</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">clinicHospital: String</text>
+    <text x="15" y="112" fill="#F59E0B" font-size="11">🔗 userId: String? [FK]</text>
+  </g>
+
+  <!-- TABLE 4: User (Staff / Doctor Auth) -->
+  <g transform="translate(820, 100)" filter="url(#erdGlow)">
+    <rect width="220" height="150" rx="8" fill="#1E293B" stroke="#E2E8F0" stroke-width="2"/>
+    <rect width="220" height="30" rx="8" fill="#334155"/>
+    <text x="110" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">User (Internal Staff)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F8FAFC" font-size="11">email: String [UK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">role: UserRole (FRONT_DESK...)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">name: String</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">passwordHash: String</text>
+  </g>
+
+  <!-- TABLE 5: Order -->
+  <g transform="translate(300, 300)" filter="url(#erdGlow)">
+    <rect width="230" height="190" rx="8" fill="#1E293B" stroke="#22C55E" stroke-width="2"/>
+    <rect width="230" height="30" rx="8" fill="#15803D"/>
+    <text x="115" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Order (Diagnostic Encounter)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F8FAFC" font-size="11">orderNo: String [UK]</text>
+    <text x="15" y="92" fill="#F59E0B" font-size="11">🔗 patientId: String [FK]</text>
+    <text x="15" y="112" fill="#F59E0B" font-size="11">🔗 doctorId: String [FK]</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">status: OrderStatus (READY...)</text>
+    <text x="15" y="152" fill="#EF4444" font-size="11">hasCritical: Boolean</text>
+    <text x="15" y="172" fill="#F8FAFC" font-size="11">signedAt: DateTime?</text>
+  </g>
+
+  <!-- TABLE 6: Result -->
+  <g transform="translate(40, 310)" filter="url(#erdGlow)">
+    <rect width="220" height="180" rx="8" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+    <rect width="220" height="30" rx="8" fill="#B45309"/>
+    <text x="110" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Result (Parameter Test)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 orderId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">parameter: String</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">value: String / valueNum</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">refRangeRaw: String</text>
+    <text x="15" y="152" fill="#F8FAFC" font-size="11">flag: ResultFlag (NORMAL/LOW...)</text>
+    <text x="15" y="172" fill="#94A3B8" font-size="10">UK: [orderId, parameter]</text>
+  </g>
+
+  <!-- TABLE 7: LinkToken (Expiring 72h) -->
+  <g transform="translate(580, 300)" filter="url(#erdGlow)">
+    <rect width="220" height="180" rx="8" fill="#1E293B" stroke="#14B8A6" stroke-width="2"/>
+    <rect width="220" height="30" rx="8" fill="#0F5E57"/>
+    <text x="110" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">LinkToken (72h Expiring Link)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 orderId: String [FK]</text>
+    <text x="15" y="92" fill="#F59E0B" font-size="11">🔗 accountId: String [FK]</text>
+    <text x="15" y="112" fill="#10B981" font-size="11">tokenHash: String [SHA-256 UK]</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">expiresAt: DateTime</text>
+    <text x="15" y="152" fill="#EF4444" font-size="11">revokedAt: DateTime?</text>
+    <text x="15" y="172" fill="#F8FAFC" font-size="11">firstOpenedAt / openCount</text>
+  </g>
+
+  <!-- TABLE 8: CallbackTask (Critical Hold) -->
+  <g transform="translate(840, 300)" filter="url(#erdGlow)">
+    <rect width="220" height="180" rx="8" fill="#1E293B" stroke="#EF4444" stroke-width="2"/>
+    <rect width="220" height="30" rx="8" fill="#B91C1C"/>
+    <text x="110" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">CallbackTask (Critical Hold)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 orderId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">type: TaskType (CRITICAL...)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">status: TaskStatus (OPEN/DONE)</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">clinicalNote: String?</text>
+    <text x="15" y="152" fill="#F59E0B" font-size="11">🔗 resolvedById: String? [FK]</text>
+    <text x="15" y="172" fill="#F8FAFC" font-size="11">resolvedAt: DateTime?</text>
+  </g>
+
+  <!-- TABLE 9: Summary & SummaryFlag -->
+  <g transform="translate(40, 540)" filter="url(#erdGlow)">
+    <rect width="220" height="170" rx="8" fill="#1E293B" stroke="#EC4899" stroke-width="2"/>
+    <rect width="220" height="30" rx="8" fill="#BE185D"/>
+    <text x="110" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Summary (Indic Explanations)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 orderId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">lang: Lang (en/te/hi)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">source: (TEMPLATE / AI)</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">body: String</text>
+    <text x="15" y="152" fill="#F8FAFC" font-size="11">reviewStatus: (PENDING/REVIEWED)</text>
+  </g>
+
+  <!-- TABLE 10: SummaryFlag -->
+  <g transform="translate(300, 540)" filter="url(#erdGlow)">
+    <rect width="210" height="150" rx="8" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+    <rect width="210" height="30" rx="8" fill="#B45309"/>
+    <text x="105" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">SummaryFlag (Feedback)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 summaryId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">reason: FlagReason (CONFUSING...)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">comment: String?</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">status: FlagStatus</text>
+  </g>
+
+  <!-- TABLE 11: Message (WhatsApp/SMS Outbox) -->
+  <g transform="translate(560, 540)" filter="url(#erdGlow)">
+    <rect width="230" height="160" rx="8" fill="#1E293B" stroke="#22C55E" stroke-width="2"/>
+    <rect width="230" height="30" rx="8" fill="#15803D"/>
+    <text x="115" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">Message (Outbox Delivery)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F59E0B" font-size="11">🔗 orderId: String [FK]</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">channel: Channel (WHATSAPP/SMS)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">status: MsgStatus (SENT/FAILED...)</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">kind: (SIGN_OFF_LINK / RESEND)</text>
+    <text x="15" y="152" fill="#10B981" font-size="10">Zero PHI in message body!</text>
+  </g>
+
+  <!-- TABLE 12: AccessLog (DPDP Audit Trail) -->
+  <g transform="translate(830, 540)" filter="url(#erdGlow)">
+    <rect width="230" height="170" rx="8" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
+    <rect width="230" height="30" rx="8" fill="#334155"/>
+    <text x="115" y="21" fill="#FFFFFF" font-size="13" font-weight="700" text-anchor="middle">AccessLog (Append-Only Audit)</text>
+    <text x="15" y="52" fill="#38BDF8" font-size="11">🔑 id: String [PK]</text>
+    <text x="15" y="72" fill="#F8FAFC" font-size="11">action: (LINK_OPEN/PHONE_REVEAL...)</text>
+    <text x="15" y="92" fill="#F8FAFC" font-size="11">actorType: (PATIENT / STAFF)</text>
+    <text x="15" y="112" fill="#F8FAFC" font-size="11">actorId: String</text>
+    <text x="15" y="132" fill="#F8FAFC" font-size="11">ipHash: String [Anonymized]</text>
+    <text x="15" y="152" fill="#F8FAFC" font-size="11">createdAt: DateTime [INDEX]</text>
+  </g>
+
+  <!-- ERD CONNECTIONS -->
+  <line x1="250" y1="170" x2="300" y2="170" stroke="#38BDF8" stroke-width="2"/>
+  <line x1="415" y1="250" x2="415" y2="300" stroke="#38BDF8" stroke-width="2"/>
+  <line x1="560" y1="180" x2="530" y2="350" stroke="#A855F7" stroke-width="1.5"/>
+  <line x1="300" y1="390" x2="260" y2="390" stroke="#F59E0B" stroke-width="2"/>
+  <line x1="530" y1="390" x2="580" y2="390" stroke="#14B8A6" stroke-width="2"/>
+  <line x1="530" y1="420" x2="840" y2="420" stroke="#EF4444" stroke-width="2"/>
+  <line x1="350" y1="490" x2="150" y2="540" stroke="#EC4899" stroke-width="1.5"/>
+  <line x1="260" y1="620" x2="300" y2="620" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="470" y1="490" x2="630" y2="540" stroke="#22C55E" stroke-width="1.5"/>
+</svg>

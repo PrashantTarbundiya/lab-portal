@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 800" width="100%" height="100%" style="background:#0F172A; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <filter id="wfGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <rect x="30" y="20" width="1040" height="60" rx="10" fill="#0F5E57" filter="url(#wfGlow)"/>
+  <text x="50" y="55" fill="#FFFFFF" font-size="20" font-weight="700">Clinical Workflow &amp; Safety State Machine</text>
+  <text x="660" y="55" fill="#CCFBF1" font-size="13">LIS Export → Critical Check → Link Generation → Delivery</text>
+
+  <!-- STEP 1: LIS CSV Import -->
+  <g transform="translate(40, 110)" filter="url(#wfGlow)">
+    <rect width="220" height="150" rx="10" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+    <rect width="220" height="28" rx="8" fill="#0284C7"/>
+    <text x="110" y="20" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">STEP 1: LIS CSV Drop</text>
+    <text x="15" y="55" fill="#F8FAFC" font-size="12" font-weight="700">Streaming Batch Ingestion</text>
+    <text x="15" y="75" fill="#CBD5E1" font-size="11">• 20,000 rows in 286 ms</text>
+    <text x="15" y="95" fill="#CBD5E1" font-size="11">• Zod Schema Row Validation</text>
+    <text x="15" y="115" fill="#CBD5E1" font-size="11">• E.164 Phone Normalization</text>
+    <text x="15" y="135" fill="#10B981" font-size="11">✓ Status Transition: SIGNED</text>
+  </g>
+
+  <!-- DECISION: Critical Value Check -->
+  <g transform="translate(320, 135)" filter="url(#wfGlow)">
+    <polygon points="110,0 220,50 110,100 0,50" fill="#B45309" stroke="#F59E0B" stroke-width="2"/>
+    <text x="110" y="47" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">Is Any Value</text>
+    <text x="110" y="65" fill="#FEF3C7" font-size="12" font-weight="700" text-anchor="middle">Critical Abnormal?</text>
+  </g>
+
+  <!-- PATH A: CRITICAL FLOW (Held Link) -->
+  <g transform="translate(590, 110)" filter="url(#wfGlow)">
+    <rect width="470" height="250" rx="10" fill="#1E293B" stroke="#EF4444" stroke-width="2"/>
+    <rect width="470" height="28" rx="8" fill="#B91C1C"/>
+    <text x="235" y="20" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">PATH A (SAFETY CRITICAL): LINK HELD — MANDATORY CALLBACK</text>
+    
+    <rect x="20" y="45" width="200" height="85" rx="6" fill="#0F172A" stroke="#EF4444" stroke-width="1"/>
+    <text x="30" y="68" fill="#EF4444" font-size="12" font-weight="700">1. Suppress Notification</text>
+    <text x="30" y="88" fill="#CBD5E1" font-size="11">• Zero SMS/WhatsApp sent</text>
+    <text x="30" y="106" fill="#CBD5E1" font-size="11">• Calm notice if accessed</text>
+    <text x="30" y="122" fill="#CBD5E1" font-size="11">• Prevents elderly panic</text>
+
+    <rect x="240" y="45" width="210" height="85" rx="6" fill="#0F172A" stroke="#F59E0B" stroke-width="1"/>
+    <text x="250" y="68" fill="#F59E0B" font-size="12" font-weight="700">2. Staff Callback Task</text>
+    <text x="250" y="88" fill="#CBD5E1" font-size="11">• Alert in /staff/tasks</text>
+    <text x="250" y="106" fill="#CBD5E1" font-size="11">• Reveal phone &amp; call</text>
+    <text x="250" y="122" fill="#CBD5E1" font-size="11">• Urgent ER/clinic advice</text>
+
+    <rect x="20" y="145" width="430" height="85" rx="6" fill="#0F172A" stroke="#10B981" stroke-width="1"/>
+    <text x="30" y="168" fill="#10B981" font-size="12" font-weight="700">3. Release Held Link with Mandatory Clinical Note</text>
+    <text x="30" y="188" fill="#CBD5E1" font-size="11">• Front desk enters clinical conversation note (e.g. "Advised immediate ER visit")</text>
+    <text x="30" y="206" fill="#CBD5E1" font-size="11">• Status set to DONE → Generates fresh 72h LinkToken → Sends WhatsApp/SMS</text>
+  </g>
+
+  <!-- PATH B: NORMAL / NON-CRITICAL FLOW -->
+  <g transform="translate(40, 390)" filter="url(#wfGlow)">
+    <rect width="1020" height="370" rx="10" fill="#1E293B" stroke="#10B981" stroke-width="2"/>
+    <rect width="1020" height="28" rx="8" fill="#15803D"/>
+    <text x="510" y="20" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">PATH B (NORMAL / NON-CRITICAL): AUTOMATIC SECURE EXPIRING LINK DELIVERY</text>
+
+    <!-- Substep B1 -->
+    <rect x="25" y="50" width="220" height="295" rx="8" fill="#0F172A" stroke="#14B8A6" stroke-width="1.5"/>
+    <text x="40" y="75" fill="#14B8A6" font-size="13" font-weight="700">B1: Link Token Creation</text>
+    <text x="40" y="100" fill="#CBD5E1" font-size="11">• 32-byte Cryptographic Token</text>
+    <text x="40" y="120" fill="#CBD5E1" font-size="11">• SHA-256 Hash stored in DB</text>
+    <text x="40" y="140" fill="#CBD5E1" font-size="11">• 72h Lifespan (LINK_TTL)</text>
+    <text x="40" y="165" fill="#10B981" font-size="11">Outbox Dispatch:</text>
+    <text x="40" y="185" fill="#CBD5E1" font-size="11">• WhatsApp Cloud API / Mock</text>
+    <text x="40" y="205" fill="#CBD5E1" font-size="11">• ZERO personal health data</text>
+    <text x="40" y="223" fill="#94A3B8" font-size="10">  in message text (No name/test)</text>
+    <text x="40" y="250" fill="#CBD5E1" font-size="11">• SMS Fallback if WhatsApp fails</text>
+    <text x="40" y="275" fill="#F59E0B" font-size="11">Link: https://.../r/[token]</text>
+
+    <!-- Substep B2 -->
+    <rect x="270" y="50" width="230" height="295" rx="8" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+    <text x="285" y="75" fill="#38BDF8" font-size="13" font-weight="700">B2: Landing Gate (/r/:token)</text>
+    <text x="285" y="100" fill="#CBD5E1" font-size="11">• GET request is PURE READ-ONLY</text>
+    <text x="285" y="118" fill="#94A3B8" font-size="10">  (WhatsApp crawler safe; 0 state)</text>
+    <text x="285" y="140" fill="#CBD5E1" font-size="11">• Masked Phone Display:</text>
+    <text x="295" y="160" fill="#38BDF8" font-size="12" font-weight="700">••••••0001</text>
+    <text x="285" y="190" fill="#EF4444" font-size="12" font-weight="700">"This is not for me" Button:</text>
+    <text x="285" y="210" fill="#CBD5E1" font-size="11">• If sent to wrong phone number</text>
+    <text x="285" y="230" fill="#CBD5E1" font-size="11">• Instantly revokes token in DB</text>
+    <text x="285" y="250" fill="#CBD5E1" font-size="11">• Logs security incident</text>
+    <text x="285" y="270" fill="#CBD5E1" font-size="11">• Alerts front desk to fix phone</text>
+
+    <!-- Substep B3 -->
+    <rect x="525" y="50" width="220" height="295" rx="8" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+    <text x="540" y="75" fill="#F59E0B" font-size="13" font-weight="700">B3: Mobile OTP Verification</text>
+    <text x="540" y="100" fill="#CBD5E1" font-size="11">• Click "Send OTP to ••••0001"</text>
+    <text x="540" y="120" fill="#CBD5E1" font-size="11">• 6-Digit OTP challenge sent</text>
+    <text x="540" y="140" fill="#CBD5E1" font-size="11">• 3 Attempts / 10 Min limit</text>
+    <text x="540" y="165" fill="#10B981" font-size="11">Security Verification:</text>
+    <text x="540" y="185" fill="#CBD5E1" font-size="11">• Re-opening always requires OTP</text>
+    <text x="540" y="205" fill="#CBD5E1" font-size="11">• Forwards cannot leak data</text>
+    <text x="540" y="230" fill="#CBD5E1" font-size="11">• DPDP Consent Check:</text>
+    <text x="550" y="250" fill="#94A3B8" font-size="10">Shows statutory notice if first visit</text>
+    <text x="540" y="275" fill="#CBD5E1" font-size="11">• Updates Message: OPENED</text>
+
+    <!-- Substep B4 -->
+    <rect x="770" y="50" width="225" height="295" rx="8" fill="#0F172A" stroke="#10B981" stroke-width="1.5"/>
+    <text x="785" y="75" fill="#10B981" font-size="13" font-weight="700">B4: Report View &amp; Telugu</text>
+    <text x="785" y="100" fill="#CBD5E1" font-size="11">• Plain Language Explanation:</text>
+    <text x="795" y="120" fill="#FEF3C7" font-size="12" font-weight="700">English | తెలుగు | हिन्दी</text>
+    <text x="785" y="145" fill="#CBD5E1" font-size="11">• Directional Out-of-Range</text>
+    <text x="795" y="165" fill="#F59E0B" font-size="11">↓ Low (Amber) / ↑ High</text>
+    <text x="785" y="190" fill="#CBD5E1" font-size="11">• "Flag this summary" modal</text>
+    <text x="785" y="215" fill="#CBD5E1" font-size="11">• Download Signed PDF:</text>
+    <text x="795" y="235" fill="#94A3B8" font-size="10">NABL layout, QR watermark,</text>
+    <text x="795" y="250" fill="#94A3B8" font-size="10">pathologist signature</text>
+    <text x="785" y="275" fill="#10B981" font-size="11">✓ Logs PDF_DOWNLOAD audit</text>
+  </g>
+
+  <!-- FLOW ARROWS -->
+  <line x1="260" y1="185" x2="320" y2="185" stroke="#38BDF8" stroke-width="2.5"/>
+  <line x1="430" y1="150" x2="590" y2="150" stroke="#EF4444" stroke-width="2.5"/>
+  <text x="490" y="140" fill="#EF4444" font-size="11" font-weight="700">YES (Critical)</text>
+  <line x1="430" y1="220" x2="430" y2="390" stroke="#10B981" stroke-width="2.5"/>
+  <text x="440" y="310" fill="#10B981" font-size="11" font-weight="700">NO (Normal / Abnormal)</text>
+</svg>

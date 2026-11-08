@@ -14,6 +14,19 @@ A secure, mobile-first report-delivery and operations platform for **Company A D
 
 ---
 
+## 📐 Architecture & Clinical Workflow Diagrams
+
+- **System Architecture:** [View Architecture Diagram](diagrams/architecture-diagram.svg)
+- **Entity-Relationship Data Model:** [View ERD Diagram](diagrams/erd-diagram.svg)
+- **Clinical Safety Workflow & State Machine:** [View Workflow Diagram](diagrams/workflow-diagram.svg)
+- **Guarded Medical AI Summary Pipeline:** [View AI Pipeline Diagram](diagrams/ai-pipeline-diagram.svg)
+
+<p align="center">
+  <img src="diagrams/architecture-diagram.svg" alt="Company A Diagnostics Architecture Diagram" width="100%"/>
+</p>
+
+---
+
 ## 🌟 Top Application Features
 
 1. **Expiring 72-Hour Links with OTP Verification:**

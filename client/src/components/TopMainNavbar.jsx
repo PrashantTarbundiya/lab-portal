@@ -53,12 +53,51 @@ export default function TopMainNavbar() {
   const currentPath = location.pathname;
   const dropdownRef = useRef(null);
   const servicesRef = useRef(null);
+  const servicesBtnRef = useRef(null);
+  const roleBtnRef = useRef(null);
+
+  const [servicesDropdownStyle, setServicesDropdownStyle] = useState({ top: 54, left: 100 });
+  const [roleDropdownStyle, setRoleDropdownStyle] = useState({ top: 54, right: 16 });
 
   const { token, user, logout } = useAuth();
   const { addToast } = useToast();
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
+
+  const handleToggleServices = () => {
+    if (!isServicesOpen && servicesBtnRef.current) {
+      const rect = servicesBtnRef.current.getBoundingClientRect();
+      const dropdownWidth = 288;
+      let left = rect.left;
+      if (left + dropdownWidth > window.innerWidth - 12) {
+        left = window.innerWidth - dropdownWidth - 12;
+      }
+      if (left < 12) left = 12;
+      setServicesDropdownStyle({
+        top: Math.round(rect.bottom + 6),
+        left: Math.round(left),
+      });
+    }
+    setIsServicesOpen((prev) => !prev);
+  };
+
+  const handleToggleRole = () => {
+    if (!isRoleDropdownOpen && roleBtnRef.current) {
+      const rect = roleBtnRef.current.getBoundingClientRect();
+      const dropdownWidth = 320;
+      let right = window.innerWidth - rect.right;
+      if (right < 12) right = 12;
+      if (window.innerWidth - right - dropdownWidth < 12) {
+        right = Math.max(12, window.innerWidth - dropdownWidth - 12);
+      }
+      setRoleDropdownStyle({
+        top: Math.round(rect.bottom + 6),
+        right: Math.round(right),
+      });
+    }
+    setIsRoleDropdownOpen((prev) => !prev);
+  };
 
   // Extract active hospital slug from URL if present, or fallback to saved / default
   const pathParts = currentPath.split('/').filter(Boolean);
@@ -80,7 +119,7 @@ export default function TopMainNavbar() {
   const activeHospital =
     HOSPITALS.find((h) => h.slug === activeHospitalSlug) || HOSPITALS[0];
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click or scroll
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -90,8 +129,16 @@ export default function TopMainNavbar() {
         setIsServicesOpen(false);
       }
     }
+    const handleScroll = () => {
+      setIsServicesOpen(false);
+      setIsRoleDropdownOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const handleHospitalChange = (newSlug) => {
@@ -205,7 +252,7 @@ export default function TopMainNavbar() {
 
   return (
     <header className="bg-[#07151f]/95 backdrop-blur-2xl text-white text-xs sticky top-0 z-50 border-b border-white/10 shadow-xl shadow-black/30">
-      <div className="w-full max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 h-13 flex items-center justify-between gap-1 sm:gap-2">
+      <div className="w-full max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 h-13 flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
         
         {/* Brand & Hospital Facility Selector */}
         <div className="flex items-center gap-2 shrink-0">
@@ -381,8 +428,9 @@ export default function TopMainNavbar() {
           {/* 7. ALL SERVICES QUICK DROPDOWN */}
           <div className="relative inline-block" ref={servicesRef}>
             <button
+              ref={servicesBtnRef}
               type="button"
-              onClick={() => setIsServicesOpen(!isServicesOpen)}
+              onClick={handleToggleServices}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-200 bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95"
               title="All Core Services Quick Launch"
             >
@@ -396,7 +444,10 @@ export default function TopMainNavbar() {
             </button>
 
             {isServicesOpen && (
-              <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-0 sm:mt-2 sm:w-72 max-w-sm mx-auto sm:mx-0 bg-[#0c1a24] border border-white/20 rounded-2xl shadow-2xl shadow-black/90 p-2.5 space-y-1 z-[100] animate-scaleUp text-slate-100">
+              <div
+                style={{ top: `${servicesDropdownStyle.top}px`, left: `${servicesDropdownStyle.left}px` }}
+                className="fixed w-72 max-w-[calc(100vw-24px)] bg-[#0c1a24] border border-white/20 rounded-2xl shadow-2xl shadow-black/90 p-2.5 space-y-1 z-[9999] animate-scaleUp text-slate-100"
+              >
                 <div className="px-2.5 py-1.5 text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20 flex items-center justify-between mb-1">
                   <span>Core Services</span>
                   <span className="text-slate-400 font-sans">Vijayawada Hub</span>
@@ -523,8 +574,9 @@ export default function TopMainNavbar() {
           <LangSwitch className="inline-flex" />
 
           <button
+            ref={roleBtnRef}
             type="button"
-            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+            onClick={handleToggleRole}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition cursor-pointer active:scale-95 shadow-sm"
             title="Instant 1-Click Role Switcher"
           >
@@ -562,7 +614,10 @@ export default function TopMainNavbar() {
 
           {/* Floating Dropdown Menu (Glassmorphism Elevated) */}
           {isRoleDropdownOpen && (
-            <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-3 sm:mt-2 sm:w-80 max-w-sm mx-auto sm:mx-0 bg-[#0c1a24] border border-white/20 rounded-2xl shadow-2xl shadow-black/90 p-2.5 space-y-1.5 z-[100] animate-scaleUp text-slate-100">
+            <div
+              style={{ top: `${roleDropdownStyle.top}px`, right: `${roleDropdownStyle.right}px` }}
+              className="fixed w-80 max-w-[calc(100vw-24px)] bg-[#0c1a24] border border-white/20 rounded-2xl shadow-2xl shadow-black/90 p-2.5 space-y-1.5 z-[9999] animate-scaleUp text-slate-100"
+            >
               <div className="flex items-center justify-between pb-2 border-b border-white/10 text-[11px]">
                 <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

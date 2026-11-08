@@ -8,9 +8,7 @@ const PRIMARY_MODEL = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super
 
 const CANDIDATE_MODELS = [
   PRIMARY_MODEL,
-  'nvidia/nemotron-3.5-super-vl',
-  'nvidia/nemotron-3.5-lightning:free',
-].filter((m, idx, arr) => arr.indexOf(m) === idx);
+].filter(Boolean);
 
 /**
  * Clean model reasoning / think tags from content
@@ -42,8 +40,6 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://isocodelabs.com',
-          'X-Title': 'Company A Diagnostics Lab Portal',
         },
         body: JSON.stringify({
           model,
@@ -52,7 +48,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
             { role: 'user', content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 700,
+          max_tokens: 400,
         }),
         signal: controller.signal,
       });

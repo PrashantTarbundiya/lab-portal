@@ -23,8 +23,15 @@ function cleanAIOutput(text) {
     .replace(/^Here('s| is) a thinking process:[\s\S]*?(?=\n\n(?:[A-Z0-9#\*]|$))/i, '')
     .trim();
 
-  // If a reasoning model dumps a step-by-step thinking block
-  if (/^1\.\s+\*\*Analyze/i.test(cleaned) || /Analyze User Input/i.test(cleaned)) {
+  // If a reasoning model dumps a step-by-step thinking block or internal monologue
+  if (
+    /^1\.\s+\*\*Analyze/i.test(cleaned) ||
+    /Analyze User Input/i.test(cleaned) ||
+    /^We need to answer/i.test(cleaned) ||
+    /^The user wants/i.test(cleaned) ||
+    /^Let's craft/i.test(cleaned) ||
+    /^Draft mentally/i.test(cleaned)
+  ) {
     const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|Dear|మీరు|నమస్కారం|[A-Z][a-z]+,))/i);
     if (lastDivider !== -1) {
       cleaned = cleaned.substring(lastDivider).trim();

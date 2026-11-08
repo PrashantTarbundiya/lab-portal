@@ -7,11 +7,12 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 const CANDIDATE_MODELS = [
-  process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-lightning:free',
-  'liquid/lfm-3-1.7b:free',
+  process.env.OPENROUTER_MODEL || 'liquid/lfm-3-1.7b:free',
   'liquid/lfm-2.5-2.6b:free',
+  'nvidia/nemotron-3.5-lightning:free',
+  'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
   'recursive/flint-v1.0:free',
-  'nvidia/nemotron-3.5-super-vl:free',
 ];
 
 /**
@@ -19,10 +20,20 @@ const CANDIDATE_MODELS = [
  */
 function cleanAIOutput(text) {
   if (!text) return '';
-  return text
+  let cleaned = text
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/^Here('s| is) a thinking process:[\s\S]*?(?=\n\n(?:[A-Z0-9#\*]|$))/i, '')
     .trim();
+
+  // If a reasoning model dumps a step-by-step thinking block before the actual output
+  if (/^1\.\s+\*\*Analyze User Input:\*\*/i.test(cleaned)) {
+    const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|మీరు|నమస్కారం|[A-Z][a-z]+,))/i);
+    if (lastDivider !== -1) {
+      cleaned = cleaned.substring(lastDivider).trim();
+    }
+  }
+
+  return cleaned;
 }
 
 /**

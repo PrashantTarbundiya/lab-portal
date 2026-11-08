@@ -8,11 +8,8 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 const CANDIDATE_MODELS = [
   process.env.OPENROUTER_MODEL || 'liquid/lfm-3-1.7b:free',
-  'liquid/lfm-2.5-2.6b:free',
   'nvidia/nemotron-3.5-lightning:free',
-  'google/gemma-4-31b-it:free',
   'google/gemma-4-26b-a4b-it:free',
-  'recursive/flint-v1.0:free',
 ];
 
 /**
@@ -45,7 +42,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
   for (const model of CANDIDATE_MODELS) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 9000); // 9s timeout per model
+      const timeout = setTimeout(() => controller.abort(), 11000); // 11s timeout per model
 
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -62,7 +59,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
             { role: 'user', content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 1200,
+          max_tokens: 650,
         }),
         signal: controller.signal,
       });

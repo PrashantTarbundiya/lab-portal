@@ -66,7 +66,10 @@ Every technical and architectural assumption is documented below with its identi
 ## 3. Architecture & Technical Rationale
 
 ### 3.1 Visual System Architecture Diagram
-![System Architecture Diagram](diagrams/architecture-diagram.svg)
+
+![System Architecture Diagram](https://raw.githubusercontent.com/PrashantTarbundiya/lab-portal/main/diagrams/architecture-diagram.png)
+
+*(Offline / Local fallback: [`diagrams/architecture-diagram.png`](diagrams/architecture-diagram.png) • Vector SVG: [`diagrams/architecture-diagram.svg`](diagrams/architecture-diagram.svg))*
 
 ```mermaid
 flowchart TD
@@ -122,7 +125,10 @@ flowchart TD
 ## 4. Data Model (Entity Relationship Diagram)
 
 ### 4.1 Visual Entity-Relationship Diagram
-![Entity Relationship Diagram](diagrams/erd-diagram.svg)
+
+![Entity Relationship Diagram](https://raw.githubusercontent.com/PrashantTarbundiya/lab-portal/main/diagrams/erd-diagram.png)
+
+*(Offline / Local fallback: [`diagrams/erd-diagram.png`](diagrams/erd-diagram.png) • Vector SVG: [`diagrams/erd-diagram.svg`](diagrams/erd-diagram.svg))*
 
 ```mermaid
 erDiagram
@@ -208,7 +214,10 @@ erDiagram
 ## 5. Main Workflows (Sequence & State Machine)
 
 ### 5.0 Visual Clinical Workflow & State Machine
-![Clinical Workflow Diagram](diagrams/workflow-diagram.svg)
+
+![Clinical Workflow Diagram](https://raw.githubusercontent.com/PrashantTarbundiya/lab-portal/main/diagrams/workflow-diagram.png)
+
+*(Offline / Local fallback: [`diagrams/workflow-diagram.png`](diagrams/workflow-diagram.png) • Vector SVG: [`diagrams/workflow-diagram.svg`](diagrams/workflow-diagram.svg))*
 
 ### 5.1 Import → Atomic Sign-Off → Link → Message
 ```mermaid
@@ -314,7 +323,10 @@ sequenceDiagram
 ## 6. Plain-Language AI Summary Pipeline & Safety Guards
 
 ### 6.1 Visual AI Pipeline & Multi-Tier Safety Guardrails
-![AI Guardrails Pipeline Diagram](diagrams/ai-pipeline-diagram.svg)
+
+![AI Guardrails Pipeline Diagram](https://raw.githubusercontent.com/PrashantTarbundiya/lab-portal/main/diagrams/ai-pipeline-diagram.png)
+
+*(Offline / Local fallback: [`diagrams/ai-pipeline-diagram.png`](diagrams/ai-pipeline-diagram.png) • Vector SVG: [`diagrams/ai-pipeline-diagram.svg`](diagrams/ai-pipeline-diagram.svg))*
 
 ```mermaid
 flowchart TD

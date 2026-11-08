@@ -396,105 +396,105 @@ export default function TopMainNavbar() {
             </button>
 
             {isServicesOpen && (
-              <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-0 sm:mt-2 sm:w-64 max-w-sm mx-auto sm:mx-0 bg-[#0a1824]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1 z-[100] animate-scaleUp text-slate-100">
-                <div className="px-2 py-1 text-[10px] font-mono font-medium text-emerald-400 border-b border-white/10 flex items-center justify-between">
+              <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-0 sm:mt-2 sm:w-72 max-w-sm mx-auto sm:mx-0 bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-950/20 p-2.5 space-y-1 z-[100] animate-scaleUp text-slate-800">
+                <div className="px-2.5 py-1.5 text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-100 flex items-center justify-between mb-1">
                   <span>Core Services</span>
-                  <span className="text-slate-400">Vijayawada Hub</span>
+                  <span className="text-slate-500 font-sans">Vijayawada Hub</span>
                 </div>
 
                 <Link
                   to="/access-logs"
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border border-transparent hover:border-slate-200/60"
                 >
-                  <div className="p-1.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                  <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600 border border-teal-200/60 group-hover:bg-teal-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-emerald-300">Log Tracker</strong>
-                    <span className="text-[10px] text-slate-400 block">Immutable DPDP Audit Trail</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-emerald-700">Log Tracker</strong>
+                    <span className="text-[10px] text-slate-500 block">Immutable DPDP Audit Trail</span>
                   </div>
                 </Link>
 
                 <Link
                   to="/operations-report"
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border border-transparent hover:border-slate-200/60"
                 >
-                  <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 group-hover:bg-emerald-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-emerald-300">Operations Report</strong>
-                    <span className="text-[10px] text-slate-400 block">SLA & Turnaround Metrics</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-emerald-700">Operations Report</strong>
+                    <span className="text-[10px] text-slate-500 block">SLA & Turnaround Metrics</span>
                   </div>
                 </Link>
 
                 <Link
                   to="/import"
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border border-transparent hover:border-slate-200/60"
                 >
-                  <div className="p-1.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                  <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 border border-cyan-200/60 group-hover:bg-cyan-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-cyan-300">Specimen Data Ingestion</strong>
-                    <span className="text-[10px] text-slate-400 block">CSV & HL7 Ingestion</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-cyan-700">Specimen Data Ingestion</strong>
+                    <span className="text-[10px] text-slate-500 block">CSV & HL7 Ingestion</span>
                   </div>
                 </Link>
 
                 <Link
                   to="/book-appointment"
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border border-transparent hover:border-slate-200/60"
                 >
-                  <div className="p-1.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 group-hover:bg-amber-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-amber-300">Book OPD & Lab Test</strong>
-                    <span className="text-[10px] text-slate-400 block">Instant Token & Map Locator</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-amber-700">Book OPD & Lab Test</strong>
+                    <span className="text-[10px] text-slate-500 block">Instant Token & Map Locator</span>
                   </div>
                 </Link>
 
                 <Link
                   to={`/${activeHospitalSlug}/admin`}
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border border-transparent hover:border-slate-200/60"
                 >
-                  <div className="p-1.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                  <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600 border border-teal-200/60 group-hover:bg-teal-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-teal-300">Hospital Admin</strong>
-                    <span className="text-[10px] text-slate-400 block">Superintendent Console</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-teal-700">Hospital Admin</strong>
+                    <span className="text-[10px] text-slate-500 block">Superintendent Console</span>
                   </div>
                 </Link>
 
                 <Link
                   to="/admin"
                   onClick={() => setIsServicesOpen(false)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 flex items-center gap-2.5 text-xs text-white transition group border-t border-white/10 pt-2"
+                  className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-xs text-slate-800 transition group border-t border-slate-100 pt-2"
                 >
-                  <div className="p-1.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 group-hover:bg-indigo-100/70 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </div>
                   <div>
-                    <strong className="block font-medium group-hover:text-amber-300">Super Admin Console</strong>
-                    <span className="text-[10px] text-slate-400 block">CMO Network Management</span>
+                    <strong className="block font-semibold text-slate-900 group-hover:text-indigo-700">Super Admin Console</strong>
+                    <span className="text-[10px] text-slate-500 block">CMO Network Management</span>
                   </div>
                 </Link>
               </div>
@@ -546,15 +546,15 @@ export default function TopMainNavbar() {
 
           {/* Floating Dropdown Menu (Glassmorphism Elevated) */}
           {isRoleDropdownOpen && (
-            <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-3 sm:mt-2 sm:w-80 max-w-sm mx-auto sm:mx-0 bg-[#0a1824]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1.5 z-[100] animate-scaleUp text-slate-100">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10 text-[11px]">
-                <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-3 sm:mt-2 sm:w-80 max-w-sm mx-auto sm:mx-0 bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-950/20 p-2.5 space-y-1.5 z-[100] animate-scaleUp text-slate-800">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px]">
+                <span className="font-semibold text-emerald-700 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
                   <span>Portal Switcher</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">{activeHospital.shortName}</span>
+                <span className="text-[10px] text-slate-500 font-mono">{activeHospital.shortName}</span>
               </div>
 
               <div className="space-y-1 max-h-80 overflow-y-auto pr-0.5 scrollbar-thin">
@@ -563,10 +563,10 @@ export default function TopMainNavbar() {
                     key={role.id}
                     type="button"
                     onClick={() => handleQuickLogin(role)}
-                    className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition-all flex items-center justify-between group cursor-pointer border border-transparent hover:border-white/10"
+                    className="w-full text-left p-2 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-between group cursor-pointer border border-transparent hover:border-slate-200/60"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-md bg-white/5 group-hover:bg-emerald-500/15 flex items-center justify-center text-slate-300 group-hover:text-emerald-400 border border-white/10 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-emerald-50 flex items-center justify-center text-slate-600 group-hover:text-emerald-700 border border-slate-200/60 group-hover:border-emerald-200 transition-colors">
                         {role.type === 'desk' && (
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         )}
@@ -587,15 +587,15 @@ export default function TopMainNavbar() {
                         )}
                       </div>
                       <div>
-                        <strong className="text-xs font-semibold text-white block leading-tight group-hover:text-emerald-300 transition-colors">
+                        <strong className="text-xs font-semibold text-slate-900 block leading-tight group-hover:text-emerald-700 transition-colors">
                           {role.label}
                         </strong>
-                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                        <span className="text-[10px] text-slate-500 block mt-0.5">
                           {role.sub}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-emerald-300 border border-emerald-500/20 font-mono">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-mono group-hover:bg-emerald-50 group-hover:text-emerald-700 group-hover:border-emerald-200 transition-colors">
                       {role.badge}
                     </span>
                   </button>

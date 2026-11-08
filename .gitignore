@@ -1,10 +1,11 @@
 # Dependencies
 node_modules/
 
-# Environment
+# Environment & Credentials
 .env
-.env.local
-.env.*.local
+.env.*
+*.pem
+*.key
 
 # Build outputs
 client/dist/

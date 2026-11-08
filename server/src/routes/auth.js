@@ -357,7 +357,8 @@ router.post('/otp/verify', async (req, res) => {
 // POST /api/auth/demo-login
 router.post('/demo-login', async (req, res) => {
   try {
-    const { role, identifier } = req.body;
+    const { role: rawRole, identifier } = req.body;
+    const role = (rawRole || 'PATIENT').toUpperCase();
     if (role === 'STAFF') {
       const user = await prisma.user.findFirst({
         where: { role: 'FRONT_DESK' },

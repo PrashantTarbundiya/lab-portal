@@ -9,7 +9,7 @@ const abhaStore = new Map(); // in-memory ABHA store keyed by accountId
 
 // GET /api/patients/profiles
 // Family member profiles for the authenticated account
-router.get('/profiles', authenticate, async (req, res) => {
+router.get(['/profiles', '/family'], authenticate, async (req, res) => {
   try {
     if (!req.dbAccount) {
       req.dbAccount = await prisma.account.findFirst({ include: { patients: true } });

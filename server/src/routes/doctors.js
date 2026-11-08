@@ -371,7 +371,7 @@ const DOCTOR_KEYWORDS = {
 
 // GET /api/doctors/orders
 // Returns patients and orders specifically belonging to the requesting / selected doctor
-router.get('/orders', authenticate, requireDoctor, async (req, res) => {
+router.get(['/orders', '/worklist'], authenticate, requireDoctor, async (req, res) => {
   try {
     const { doctorSlug, hospitalSlug } = req.query;
     const effectiveSlug = (doctorSlug || 'dr-ramanaiah').toLowerCase();

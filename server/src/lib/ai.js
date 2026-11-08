@@ -7,7 +7,6 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 const CANDIDATE_MODELS = [
-  'liquid/lfm-3-1.7b:free',
   'google/gemma-4-26b-a4b-it:free',
 ];
 
@@ -80,7 +79,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt, targetLang = 'en'
   for (const model of CANDIDATE_MODELS) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4500); // 4.5s aggressive timeout
+      const timeout = setTimeout(() => controller.abort(), 2500); // 2.5s snappy timeout
 
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',

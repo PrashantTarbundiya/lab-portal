@@ -51,6 +51,7 @@ router.get(['/profiles', '/family'], authenticate, async (req, res) => {
         consentAt: req.dbAccount.consentAt || new Date().toISOString(),
       },
       patients: mapped,
+      members: mapped,
       activeHospitalSlug: hospitalSlug || 'all',
     });
   } catch (err) {

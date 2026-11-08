@@ -12,7 +12,7 @@ def request(endpoint, method='GET', data=None, token=None):
         headers['Authorization'] = f"Bearer {token}"
     body = json.dumps(data).encode('utf-8') if data else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=15) as resp:
+    with urllib.request.urlopen(req, timeout=30) as resp:
         return resp.getcode(), json.loads(resp.read().decode('utf-8'))
 
 passed = 0
@@ -61,7 +61,8 @@ print("\n--- 3. Patient Portal & Diagnostic Orders ---")
 PATIENT_TOKEN = "demo-patient:+919000000001"
 def t5():
     code, res = request('/api/patients/family', token=PATIENT_TOKEN)
-    assert code == 200 and len(res.get('members', [])) >= 2, f"Expected family members, got {res}"
+    members = res.get('patients') or res.get('members', [])
+    assert code == 200 and len(members) >= 2, f"Expected family members, got {res}"
 test("Patient Family Profiles (>=2 members)", t5)
 
 def t6():

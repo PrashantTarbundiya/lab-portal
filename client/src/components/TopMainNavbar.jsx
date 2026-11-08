@@ -205,7 +205,7 @@ export default function TopMainNavbar() {
 
   return (
     <header className="bg-[#07151f]/95 backdrop-blur-2xl text-white text-xs sticky top-0 z-50 border-b border-white/10 shadow-xl shadow-black/30">
-      <div className="w-full max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 h-13 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+      <div className="w-full max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 h-13 flex items-center justify-between gap-1 sm:gap-2">
         
         {/* Brand & Hospital Facility Selector */}
         <div className="flex items-center gap-2 shrink-0">
@@ -396,7 +396,7 @@ export default function TopMainNavbar() {
             </button>
 
             {isServicesOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-[#0a1824]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1 z-50 animate-scaleUp text-slate-100">
+              <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-0 sm:mt-2 sm:w-64 max-w-sm mx-auto sm:mx-0 bg-[#0a1824]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1 z-[100] animate-scaleUp text-slate-100">
                 <div className="px-2 py-1 text-[10px] font-mono font-medium text-emerald-400 border-b border-white/10 flex items-center justify-between">
                   <span>Core Services</span>
                   <span className="text-slate-400">Vijayawada Hub</span>
@@ -546,7 +546,7 @@ export default function TopMainNavbar() {
 
           {/* Floating Dropdown Menu (Glassmorphism Elevated) */}
           {isRoleDropdownOpen && (
-            <div className="absolute right-3 top-full mt-2 w-72 sm:w-80 bg-[#0a1824]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1.5 z-50 animate-scaleUp text-slate-100">
+            <div className="fixed sm:absolute top-[54px] sm:top-full left-2 right-2 sm:left-auto sm:right-3 sm:mt-2 sm:w-80 max-w-sm mx-auto sm:mx-0 bg-[#0a1824]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2.5 space-y-1.5 z-[100] animate-scaleUp text-slate-100">
               <div className="flex items-center justify-between pb-2 border-b border-white/10 text-[11px]">
                 <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

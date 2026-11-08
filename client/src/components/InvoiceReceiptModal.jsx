@@ -240,7 +240,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, order, hospital }
 
             <div className="text-right shrink-0">
               <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-md border border-emerald-500/30 inline-block print:bg-emerald-100 print:text-emerald-900 print:border-emerald-300 font-mono">
-                PAID IN FULL
+                PAID VIA RAZORPAY
               </span>
               <strong className="block text-white font-mono text-xs mt-1.5 font-extrabold tabular-nums print:text-slate-950">{invoiceNo}</strong>
               <span className="text-[10px] text-slate-400 font-mono block print:text-slate-600">Date: {invoiceDate}</span>
@@ -266,10 +266,10 @@ export default function InvoiceReceiptModal({ isOpen, onClose, order, hospital }
               <span className="text-slate-400 font-mono font-bold uppercase text-[9px] block print:text-slate-500">Prescribing Physician & Billing</span>
               <strong className="text-white font-bold text-xs block print:text-slate-950">{order.doctorName || order.doctor?.name || 'Dr. S. Ramanaiah, MD (APMC-58291)'}</strong>
               <span className="text-slate-300 block print:text-slate-700">
-                Payment Mode: <strong className="text-emerald-300 font-semibold print:text-emerald-800">UPI / Instant Gateway</strong>
+                Payment Gateway: <strong className="text-emerald-300 font-semibold print:text-emerald-800">Razorpay (UPI / QR / Cards)</strong>
               </span>
               <span className="text-slate-400 font-mono text-[10px] block print:text-slate-500 whitespace-nowrap">
-                Txn Ref: UPI-{orderNo.replace(/\D/g, '') || '92892'}-7120
+                Razorpay Txn: pay_rzp_{orderNo.replace(/\D/g, '') || '71204'}_9921
               </span>
             </div>
           </div>

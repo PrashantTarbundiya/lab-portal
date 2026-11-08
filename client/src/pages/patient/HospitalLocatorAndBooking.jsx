@@ -508,7 +508,7 @@ export default function HospitalLocatorAndBooking() {
     }).catch(() => null);
 
     const activeKey = orderRes?.keyId || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || '';
-    const hasRealRazorpayKey = activeKey && !activeKey.includes('DemoPortal') && activeKey.startsWith('rzp_');
+    const hasRealRazorpayKey = Boolean(activeKey && activeKey.startsWith('rzp_'));
 
     if (hasRealRazorpayKey && typeof window !== 'undefined' && window.Razorpay) {
       try {

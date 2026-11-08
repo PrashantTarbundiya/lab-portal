@@ -16,26 +16,56 @@ const CANDIDATE_MODELS = [
 /**
  * Clean model reasoning / think tokens
  */
-function cleanAIOutput(text) {
+function cleanAIOutput(text, targetLang = 'en') {
   if (!text) return '';
   let cleaned = text
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/^Here('s| is) a thinking process:[\s\S]*?(?=\n\n(?:[A-Z0-9#\*]|$))/i, '')
     .trim();
 
-  // If a reasoning model dumps a step-by-step thinking block or internal monologue
-  if (
-    /^1\.\s+\*\*Analyze/i.test(cleaned) ||
-    /Analyze User Input/i.test(cleaned) ||
-    /^We need to answer/i.test(cleaned) ||
-    /^The user wants/i.test(cleaned) ||
-    /^Let's craft/i.test(cleaned) ||
-    /^Draft mentally/i.test(cleaned)
-  ) {
-    const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|Dear|మీరు|నమస్కారం|[A-Z][a-z]+,))/i);
+  // Meta-reasoning detector: if the model leaked its internal instructions or thinking
+  const isReasoning =
+    /need to explain/i.test(cleaned) ||
+    /the user asks/i.test(cleaned) ||
+    /let's craft/i.test(cleaned) ||
+    /let's draft/i.test(cleaned) ||
+    /let's structure/i.test(cleaned) ||
+    /i should probably/i.test(cleaned) ||
+    /first line:/i.test(cleaned) ||
+    /since no specific/i.test(cleaned) ||
+    /draft mentally/i.test(cleaned) ||
+    /1\.\s+\*\*analyze/i.test(cleaned) ||
+    /analyze user input/i.test(cleaned) ||
+    /target language:/i.test(cleaned) ||
+    /without data, i can only/i.test(cleaned) ||
+    /let's think/i.test(cleaned);
+
+  if (isReasoning) {
+    // Attempt to salvage any real response after a clear separator
+    const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|Dear|నమస్కారం|[A-Z][a-z]+,))/i);
     if (lastDivider !== -1) {
       cleaned = cleaned.substring(lastDivider).trim();
+      // Double check that the extracted piece isn't still reasoning
+      if (/need to explain|the user asks|let's draft/i.test(cleaned)) {
+        return '';
+      }
     } else {
+      return ''; // Discard and trigger instant clinical synthesis fallback
+    }
+  }
+
+  // If the user asked in Telugu or Hindi, but the model replied in English
+  if (targetLang === 'te') {
+    const teluguChars = (cleaned.match(/[\u0C00-\u0C7F]/g) || []).length;
+    const latinChars = (cleaned.match(/[a-zA-Z]/g) || []).length;
+    // If predominantly English when Telugu was asked, it's an internal reasoning failure
+    if (latinChars > 80 && teluguChars < 40) {
+      return '';
+    }
+  } else if (targetLang === 'hi') {
+    const hindiChars = (cleaned.match(/[\u0900-\u097F]/g) || []).length;
+    const latinChars = (cleaned.match(/[a-zA-Z]/g) || []).length;
+    if (latinChars > 80 && hindiChars < 40) {
       return '';
     }
   }
@@ -46,7 +76,7 @@ function cleanAIOutput(text) {
 /**
  * Query OpenRouter with candidate model failover
  */
-async function queryOpenRouterModels(systemPrompt, userPrompt) {
+async function queryOpenRouterModels(systemPrompt, userPrompt, targetLang = 'en') {
   if (!OPENROUTER_API_KEY) return null;
 
   for (const model of CANDIDATE_MODELS) {
@@ -84,7 +114,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
       const data = await res.json();
       const choice = data.choices?.[0]?.message;
       let rawText = choice?.content || choice?.reasoning || '';
-      rawText = cleanAIOutput(rawText);
+      rawText = cleanAIOutput(rawText, targetLang);
 
       if (rawText && rawText.length > 20) {
         return { answer: rawText, model };
@@ -230,7 +260,55 @@ function generateClinicalKnowledgeAnswer(userPrompt, lang = 'en') {
       `* **Routine Medications:** Blood pressure and thyroid medications are usually taken with water unless your physician explicitly directs otherwise. Diabetic medications are usually postponed until after the breakfast draw.`;
   }
 
-  // Default Universal Clinical Educational Response
+  // 7. General Blood Test Results / Reports / CBC / Explanation in Indic languages
+  if (q.includes('రక్త పరీక్ష') || q.includes('పరీక్ష') || q.includes('ఫలితాలు') || q.includes('రిపోర్ట్') || q.includes('blood test') || q.includes('results') || q.includes('report') || q.includes('రక్తం') || q.includes('जांच')) {
+    if (isTelugu) {
+      return `### రక్త పరీక్ష ఫలితాల వివరణ:\n\n` +
+        `కంపెనీ A డయాగ్నోస్టిక్స్ ల్యాబ్ పోర్టల్ ద్వారా సాధారణ రక్త పరీక్షల ప్రామాణిక వివరాలు ఇక్కడ ఇవ్వబడ్డాయి:\n\n` +
+        `| పరీక్ష పేరు (Test Parameter) | సాధారణ పరిధి (Normal Range) | ప్రయోజనం (Clinical Purpose) |\n` +
+        `| :--- | :--- | :--- |\n` +
+        `| **హీమోగ్లోబిన్ (Hemoglobin)** | **12.0 – 17.0 g/dL** | రక్తంలో ఆక్సిజన్ మోసే సామర్థ్యం |\n` +
+        `| **ఫాస్టింగ్ బ్లడ్ షుగర్ (FBS)** | **70 – 99 mg/dL** | రక్తంలో చక్కెర స్థాయి |\n` +
+        `| **ప్లేట్‌లెట్స్ (Platelet Count)** | **1.5 – 4.5 లక్షలు/µL** | రక్తం గడ్డకట్టే సామర్థ్యం |\n` +
+        `| **మొత్తం కొలెస్ట్రాల్ (Cholesterol)** | **< 200 mg/dL** | గుండె మరియు రక్తనాళాల ఆరోగ్యం |\n` +
+        `| **సీరమ్ క్రియాటినిన్ (Creatinine)** | **0.6 – 1.2 mg/dL** | మూత్రపిండాల (కిడ్నీ) పనితీరు |\n\n` +
+        `**రిపోర్టులోని సూచనలు:**\n` +
+        `* మీ రిపోర్టులో ఏదైనా విలువ **HIGH** లేదా **LOW** అని ఉంటే, పోర్టల్‌లో సంబంధిత ఆర్డర్ వివరాలను క్లిక్ చేసి సమగ్ర గ్రాఫ్ మరియు వైద్యుల గమనికలను చూడవచ్చు.\n` +
+        `* ఖచ్చితమైన చికిత్స మరియు మందుల కొరకు దయచేసి మీ డాక్టర్‌ను సంప్రదించండి.`;
+    }
+    if (isHindi) {
+      return `### रक्त परीक्षण परिणामों की नैदानिक समीक्षा:\n\n` +
+        `आपकी रक्त जांच रिपोर्ट को आसानी से समझने के लिए मुख्य संदर्भ स्तर नीचे दिए गए हैं:\n\n` +
+        `| जांच का नाम (Test) | सामान्य सीमा (Normal Range) | महत्व (Significance) |\n` +
+        `| :--- | :--- | :--- |\n` +
+        `| **हीमोग्लोबिन (Hemoglobin)** | **12.0 – 17.0 g/dL** | शरीर में ऑक्सीजन का प्रवाह |\n` +
+        `| **फास्टिंग ग्लूकोज (Sugar)** | **70 – 99 mg/dL** | डायबिटीज एवं शर्करा नियंत्रण |\n` +
+        `| **प्लेटलेट्स (Platelets)** | **1.5 – 4.5 लाख/µL** | रक्त का थक्का जमना |\n` +
+        `| **कुल कोलेस्ट्रॉल (Cholesterol)** | **< 200 mg/dL** | हृदय एवं धमनी स्वास्थ्य |\n` +
+        `| **सीरम क्रिएटिनिन (Creatinine)** | **0.6 – 1.2 mg/dL** | गुर्दे (किडनी) की कार्यप्रणाली |\n\n` +
+        `*विशिष्ट रिपोर्ट विश्लेषण हेतु कृपया अपने ऑर्डर पेज पर जाएं एवं चिकित्सक से परामर्श लें।*`;
+    }
+  }
+
+  // Fallback if Telugu was requested
+  if (isTelugu) {
+    return `### కంపెనీ A డయాగ్నోస్టిక్స్ క్లినికల్ సమీక్ష:\n\n` +
+      `మీ ప్రశ్న: **"${userPrompt}"** కొరకు ధన్యవాదాలు.\n\n` +
+      `* ల్యాబ్ రిఫరెన్స్ పరిధులు 95% ఆరోగ్యకరమైన జనాభా జీవసంబంధ విలువలపై ఆధారపడి ఉంటాయి.\n` +
+      `* మీ రిపోర్టులోని ప్రత్యేక ఫలితాలు, గ్రాఫ్‌లు మరియు డాక్టర్ గమనికలను చూడటానికి పోర్టల్‌లోని మీ ఆర్డర్‌ను తెరవండి.\n` +
+      `* ఏవైనా అసాధారణ ఫలితాలు ఉంటే తదుపరి పరిశీలన కొరకు మీ చికిత్స వైద్యుడిని సంప్రదించండి.`;
+  }
+
+  // Fallback if Hindi was requested
+  if (isHindi) {
+    return `### नैदानिक समीक्षा:\n\n` +
+      `आपके प्रश्न: **"${userPrompt}"** के लिए धन्यवाद।\n\n` +
+      `* प्रयोगशाला संदर्भ अंतराल 95% स्वस्थ जनसंख्या के औसत पर आधारित होते हैं।\n` +
+      `* अपनी विशिष्ट रिपोर्ट, ग्राफ और चिकित्सक की टिप्पणियों को देखने के लिए पोर्टल पर अपने ऑर्डर को खोलें।\n` +
+      `* किसी भी असामान्य परिणाम के लिए कृपया अपने डॉक्टर से परामर्श करें।`;
+  }
+
+  // Default Universal Clinical Educational Response (English)
   return `### Lab Diagnostic Clinical Review\n\n` +
     `Thank you for asking about: **"${userPrompt}"**.\n\n` +
     `**Key Diagnostic Principles:**\n` +
@@ -266,7 +344,7 @@ Highlight key terms with **bold**, use bullet points, and present comparisons in
 IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
 
   // 1. Try OpenRouter live models
-  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt);
+  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, effectiveLang);
   if (liveResult && liveResult.answer) {
     return {
       success: true,
@@ -341,7 +419,7 @@ Highlight key terms with **bold**, use bullet points, and present numerical rang
 IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
 
   // 1. Try OpenRouter live models
-  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt);
+  const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt, effectiveLang);
   if (liveResult && liveResult.answer) {
     return {
       success: true,

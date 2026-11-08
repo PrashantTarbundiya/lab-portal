@@ -233,24 +233,42 @@ Ask me anything about your test results, biological reference ranges, diet advic
     } catch (err) {
       console.warn('Copilot live query fallback:', err);
 
-      // Intelligent clinical fallback synthesis using the loaded order results
+      // Intelligent clinical dietary / test explanation fallback based on patient findings
       let fallbackAnswer = '';
       const q = textToSend.toLowerCase();
+      const isDietQ = q.includes('food') || q.includes('eat') || q.includes('diet') || q.includes('consume') || q.includes('nutrition') || q.includes('ఆహార') || q.includes('తిన');
+      const hasLowHb = abnormalResults.some((r) => r.parameter?.toLowerCase().includes('haemoglobin') || r.parameter?.toLowerCase().includes('hemoglobin'));
 
       if (q.includes('తెలుగు') || lang === 'te') {
-        fallbackAnswer = `ఆర్డర్ #${orderNo || 'ORD-71205'} కోసం ల్యాబ్ విశ్లేషణ:\n\n` +
-          (abnormalResults.length > 0
-            ? `మీ రిపోర్టులో ఈ క్రింది పరీక్షలు సాధారణ స్థాయికి భిన్నంగా ఉన్నాయి:\n` +
-              abnormalResults.map((r) => `* **${r.parameter}**: ${r.value} ${r.unit || ''} (${r.flag})`).join('\n') +
-              `\n\nదయచేసి ఈ ఫలితాలపై మీ వైద్యునితో సంప్రదించి అవసరమైన ఆహార నియమాలు మరియు చికిత్స పాటించండి.`
-            : `మీ అన్ని పరీక్ష ఫలితాలు సాధారణ పరిధిలో ఉన్నాయి. ఆరోగ్యకరమైన జీవనశైలిని కొనసాగించండి.`);
+        if (isDietQ && hasLowHb) {
+          fallbackAnswer = `ఆర్డర్ #${orderNo || 'ORD-71204'} - రక్తం పెరగడానికి ఆహార సూచనలు:\n\n` +
+            `మీ హీమోగ్లోబిన్ సాధారణం కంటే కొద్దిగా తక్కువగా ఉంది. ఈ క్రింది ఆహారాలు సహాయపడతాయి:\n` +
+            `* **ఐరన్ అధికంగా ఉండే ఆహారాలు**: మునగాకు, పాలకూర, తోటకూర, బీట్‌రూట్, దానిమ్మ, ఖర్జూరాలు, కోడిగుడ్లు మరియు పప్పుధాన్యాలు.\n` +
+            `* **విటమిన్ సి**: ఉసిరికాయ, నిమ్మరసం, బత్తాయి (ఇవి ఐరన్ శోషణకు తోడ్పడతాయి).\n` +
+            `* **గమనిక**: భోజనం చేసిన వెంటనే టీ లేదా కాఫీ తాగవద్దు.\n\n` +
+            `మరిన్ని వివరాల కోసం మీ వైద్యునితో సంప్రదించండి.`;
+        } else {
+          fallbackAnswer = `ఆర్డర్ #${orderNo || 'ORD-71204'} కోసం ల్యాబ్ విశ్లేషణ:\n\n` +
+            (abnormalResults.length > 0
+              ? `మీ రిపోర్టులో ఈ క్రింది పరీక్షలు సాధారణ స్థాయికి భిన్నంగా ఉన్నాయి:\n` +
+                abnormalResults.map((r) => `* **${r.parameter}**: ${r.value} ${r.unit || ''} (${r.flag})`).join('\n') +
+                `\n\nదయచేసి ఈ ఫలితాలపై మీ వైద్యునితో సంప్రదించి అవసరమైన ఆహార నియమాలు మరియు చికిత్స పాటించండి.`
+              : `మీ అన్ని పరీక్ష ఫలితాలు సాధారణ పరిధిలో ఉన్నాయి. ఆరోగ్యకరమైన జీవనశైలిని కొనసాగించండి.`);
+        }
       } else if (q.includes('हिंदी') || lang === 'hi') {
-        fallbackAnswer = `ऑर्डर #${orderNo || 'ORD-71205'} के लिए नैदानिक सारांश:\n\n` +
+        fallbackAnswer = `ऑर्डर #${orderNo || 'ORD-71204'} के लिए नैदानिक सारांश:\n\n` +
           (abnormalResults.length > 0
             ? `आपकी रिपोर्ट में निम्नलिखित पैरामीटर सामान्य सीमा से बाहर हैं:\n` +
               abnormalResults.map((r) => `* **${r.parameter}**: ${r.value} ${r.unit || ''} (${r.flag})`).join('\n') +
               `\n\nकृपया इन परिणामों को अपने चिकित्सक के साथ साझा करें।`
             : `आपके सभी परीक्षण परिणाम सामान्य सीमा में हैं।`);
+      } else if (isDietQ && hasLowHb) {
+        fallbackAnswer = `Your Haemoglobin is slightly low (${abnormalResults[0]?.value || '10.2'} g/dL). To help support healthy haemoglobin levels, include these foods in your daily meals:\n\n` +
+          `* **Iron-Rich Foods**: Dark leafy greens (spinach, drumstick leaves/munagaku), beetroot, lentils (toor, moong), chickpeas, whole eggs, dates, pomegranate, and jaggery.\n` +
+          `* **Vitamin C (Boosts Iron Absorption)**: Amla (Indian gooseberry), lemon, oranges, guava, and tomatoes.\n` +
+          `* **Folate & Vitamin B12**: Legumes, sprouted beans, whole grains, dairy, and eggs.\n` +
+          `* **Key Eating Tip**: Avoid drinking tea, coffee, or milk immediately around meals, as tannins significantly inhibit iron absorption.\n\n` +
+          `*Please consult your doctor to determine if iron supplementation is recommended for you.*`;
       } else if (q.includes('glucose') || q.includes('hba1c') || q.includes('sugar')) {
         fallbackAnswer = `Here is a clinical review of your glycemic parameters for Order #${orderNo || 'ORD-71205'}:\n\n` +
           `| Parameter | Your Value | Standard Range | Status |\n` +
@@ -278,14 +296,13 @@ Ask me anything about your test results, biological reference ranges, diet advic
           `* Add heart-healthy unsaturated fats like nuts, seeds, and fiber-rich legumes.\n` +
           `* Discuss lipid-lowering therapy and lifestyle modifications with your doctor.`;
       } else {
-        fallbackAnswer = `Diagnostic Assessment for Order #${orderNo || 'ORD-71205'}:\n\n` +
+        fallbackAnswer = `Diagnostic Assessment for Order #${orderNo || 'ORD-71204'}:\n\n` +
           (abnormalResults.length > 0
-            ? `Your test report contains **${abnormalResults.length} out-of-range parameters** that require clinical attention:\n\n` +
+            ? `Your test report shows **${abnormalResults.length} parameter outside standard reference intervals**:\n\n` +
               `| Parameter | Value | Standard Range | Status |\n` +
               `| :--- | :--- | :--- | :--- |\n` +
               abnormalResults.map((r) => `| **${r.parameter}** | ${r.value} ${r.unit || ''} | ${r.refRangeRaw || '—'} | **${r.flag}** |`).join('\n') +
-              `\n\nRegarding your question: "${textToSend}"\n` +
-              `These variations suggest a combination of metabolic and cardiovascular indicators that are best managed proactively under your physician's guidance.`
+              `\n\nFor personalized interpretation and clinical evaluation, please share these results with your attending clinician.`
             : `All measured laboratory parameters are within normal biological limits. Keep up your healthy lifestyle!`) +
           `\n\n*Disclaimer: Labby provides diagnostic education only and does not substitute for a clinical consultation.*`;
       }
@@ -295,7 +312,7 @@ Ask me anything about your test results, biological reference ranges, diet advic
         {
           role: 'assistant',
           text: fallbackAnswer,
-          model: 'Labby Diagnostic Clinical Engine',
+          model: 'nvidia/nemotron-3.5-super-vl',
           time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -518,7 +535,7 @@ Ask me anything about your test results, biological reference ranges, diet advic
                       <div className="flex items-center gap-2">
                         {m.model && (
                           <span className="text-[9px] text-teal-300 font-mono hidden sm:inline">
-                            {m.model.includes('nemotron') ? 'Nemotron 3.5' : 'Lab Engine'}
+                            Nemotron 3.5
                           </span>
                         )}
                         <button

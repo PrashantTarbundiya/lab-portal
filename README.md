@@ -11,6 +11,7 @@ A secure, mobile-first report-delivery and operations platform for **Company A D
 - **GitHub Repository:** [https://github.com/PrashantTarbundiya/lab-portal](https://github.com/PrashantTarbundiya/lab-portal)
 - **Technical Design Document:** [`docs/TDD.md`](docs/TDD.md)
 - **Deployment & Walkthrough Guide:** [`deployment.md`](deployment.md)
+- **User & Operations Manual:** [`USER_MANUAL.md`](USER_MANUAL.md)
 
 ---
 

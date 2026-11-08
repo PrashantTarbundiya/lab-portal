@@ -312,7 +312,7 @@ Ask me anything about your test results, biological reference ranges, diet advic
         {
           role: 'assistant',
           text: fallbackAnswer,
-          model: 'nvidia/nemotron-3.5-super-vl',
+          model: 'nvidia/nemotron-3.5-super-vl:free',
           time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
         },
       ]);

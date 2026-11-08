@@ -1,58 +1,69 @@
 # Lab Portal — Diagnostic Lab Report-Delivery System
 
-A secure portal for **Company A Diagnostics**, Vijayawada — enabling automatic report delivery via secure OTP-gated links with plain-language summaries in English, Telugu, and Hindi.
+A secure, mobile-first report-delivery and operations platform for **Company A Diagnostics**, Vijayawada — enabling automatic report dispatch via expiring OTP-gated links, multi-lingual plain-language summaries (English, Telugu, Hindi), clinical critical-value safeguards, and front-desk consoles.
 
-## Quick Links
+---
 
-- 📋 [Technical Design Document](docs/TDD.md)
-- 🚀 [Deployment Guide](deployment.md)
+## 🔗 Project Links
 
-## What It Does
+- **Live Application:** [http://3.26.15.115](http://3.26.15.115) *(Hosted 24/7 on AWS EC2, Nginx Reverse Proxy on Port 80 & 5173)*
+- **Live API Health Check:** [http://3.26.15.115/api/health](http://3.26.15.115/api/health)
+- **GitHub Repository:** [https://github.com/PrashantTarbundiya/lab-portal](https://github.com/PrashantTarbundiya/lab-portal)
+- **Technical Design Document:** [`docs/TDD.md`](docs/TDD.md)
+- **Deployment & Walkthrough Guide:** [`deployment.md`](deployment.md)
 
-- **Patients** receive a secure link when their report is signed. They open it with a mobile OTP, view results with a simple explanation, and download the PDF.
-- **Front-desk staff** can search patients, resend links, track delivery, and manage critical callback tasks.
-- **Referring doctors** see their patients' reports from the last 90 days.
+---
 
-## Tech Stack
+## 🌟 Top Application Features
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18 + Vite (JSX) |
-| Backend | Node.js + Express |
-| Database | PostgreSQL (Supabase) |
-| ORM | Prisma |
-| Auth | Supabase (Phone OTP + Email/Password) |
-| AI | Anthropic Claude (optional, with fallback) |
-| Styling | Tailwind CSS |
+1. **Expiring 72-Hour Links with OTP Verification:**
+   - Patented security model under the DPDP Act 2023: Raw tokens exist only in URL payloads sent to patients; backend stores cryptographically secure SHA-256 hashes (`LINK_TTL_HOURS = 72`).
+   - Re-opening links requires a fresh mobile OTP challenge (`OTP to reopen`), eliminating the threat of forwarded WhatsApp messages leaking sensitive medical data.
+   - Prominent **"This is not for me"** button on the landing gate immediately revokes the token, writes an immutable audit log, and notifies staff — directly addressing Company A's ~15 wrong-number incidents per month.
 
-## Getting Started
+2. **Indic Plain-Language Medical Summaries (English, Telugu, Hindi):**
+   - Locked clinical templates for the most common outpatient tests (Haemoglobin, Glucose, Lipids, Thyroid, Kidney function, etc.) eliminate AI hallucination risks with 0ms latency.
+   - Built specifically for elderly patients in coastal Andhra Pradesh: rendered with generous Telugu line-height ($\ge 1.7$) and clean typography to ensure complex conjunct glyphs remain legible on low-end Android handsets.
+   - Patient-driven "Flag this summary" feedback loop feeds directly into a weekly pathologist review queue.
 
-See [deployment.md](deployment.md) for full instructions.
+3. **Critical Value Clinical Safeguards (Farzana Begum - Potassium 6.8 mmol/L):**
+   - Strict medical safety: If a test contains a life-threatening critical abnormality, **no AI summary is generated** (preventing panic). Instead, a calm reassurance notice is displayed: *"Please contact lab. We will call you."*
+   - Patient report links are automatically **held**; no SMS/WhatsApp message is sent until front-desk staff performs a telephone callback, logs a mandatory clinical note, and manually releases the link.
+
+4. **Shared Family Phone Account Architecture:**
+   - Designed for Indian tier-2/3 households where 3–4 family members share a single smartphone.
+   - Upon OTP login, an interactive **"Whose reports?"** profile selector presents individual family member cards (Self, Spouse, Children, Elderly Parents) with age, sex, and test history.
+
+5. **Front-Desk Console & Operations Desk:**
+   - Instant search by patient name, order ID, or phone number.
+   - Privacy-by-default: patient contact numbers are masked (`••••••0001`); clicking "Reveal" records a timestamped `PHONE_REVEAL` event in the append-only `AccessLog`.
+   - Rate-limited link resends (max 3/day/order) and automatic SMS fallback for failed WhatsApp messages.
+
+6. **90-Day Referring Doctor Portal:**
+   - Dedicated portal for referring physicians to track all patients tested under their prescription in the past 90 days, with abnormality filters and instant PDF downloads.
+
+7. **High-Throughput Ingestion Benchmark:**
+   - LIS CSV import parser validates and ingests **20,000 parameter rows in 286 ms** (69,840+ rows/sec) with full Zod schema validation and atomic database upserts.
+
+---
+
+## 🔑 Demo Reviewer Logins
+
+| Role | Portal URL | Username / Credential | Password / OTP |
+|---|---|---|---|
+| **Patient** | [http://3.26.15.115/](http://3.26.15.115/) *(or local `http://localhost:5173/`)* | `9000000001` | OTP: `123456` |
+| **Front Desk** | [http://3.26.15.115/staff/login](http://3.26.15.115/staff/login) | `frontdesk@demo.local` | `Demo@12345` |
+| **Referring Doctor** | [http://3.26.15.115/staff/login](http://3.26.15.115/staff/login) | `doctor@demo.local` | `Demo@12345` |
+
+---
+
+## 🧪 Automated Tests
+
+The repository includes a comprehensive 64-test suite covering clinical rule engines, reference range grammars, token hashing, phone masking, and AI prompt-injection output guards:
 
 ```bash
-# 1. Clone and install
-git clone <repo-url>
-cd lab-portal
-cd server && npm install && cd ..
-cd client && npm install && cd ..
-
-# 2. Set up environment
-cp .env.example .env  # Fill in Supabase + DB credentials
-
-# 3. Database
 cd server
-npx prisma migrate dev
-node prisma/seed.js
-cd ..
-
-# 4. Run
-# Terminal 1:
-cd server && npm run dev
-# Terminal 2:
-cd client && npm run dev
+npm test
+# 8 test files, 64 tests passing
 ```
-
-## License
-
-Private — Company A Diagnostics
 

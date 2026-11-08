@@ -1,6 +1,13 @@
+GitHub: https://github.com/PrashantTarbundiya/lab-portal
+Live app: http://3.26.15.115
+
 # Deployment & Reviewer Guide: Diagnostic Lab Report-Delivery Portal
 
 This document provides complete, step-by-step instructions for running the application locally, deploying to production, running the automated test suite, and executing a **7-minute comprehensive reviewer walkthrough**.
+
+- **Repository:** https://github.com/PrashantTarbundiya/lab-portal
+- **Live Application:** http://3.26.15.115 (Port 80 and Port 5173)
+- **Live API Health Check:** http://3.26.15.115/api/health (or port 3000: http://3.26.15.115:3000/api/health)
 
 ---
 
@@ -18,7 +25,7 @@ Before starting, ensure your local development machine has:
 
 ### Step 1: Clone Repository
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/PrashantTarbundiya/lab-portal.git
 cd lab-portal
 ```
 
@@ -240,9 +247,9 @@ docker compose up -d --build
 docker compose ps
 ```
 Your application is now running 24/7 on AWS EC2!
-- Frontend UI: `http://<your-ec2-ip>:5173`
-- Backend API: `http://<your-ec2-ip>:3000`
-- Healthcheck: `http://<your-ec2-ip>:3000/api/health`
+- Live Frontend UI: `http://3.26.15.115` (or `http://3.26.15.115:5173`)
+- Live Backend API: `http://3.26.15.115:3000`
+- Healthcheck: `http://3.26.15.115/api/health` (or `http://3.26.15.115:3000/api/health`)
 
 ---
 
@@ -290,11 +297,11 @@ TARGET_URL=https://your-service.onrender.com node scripts/keep-alive.js &
 ## 5. Reviewer Demo Logins & Scenarios
 
 ### 5.1 Quick Logins
-| Role | Portal URL | Username / Credential | Password / OTP |
+| Role | Portal URL (Live or Local) | Username / Credential | Password / OTP |
 |---|---|---|---|
-| **Patient** | `http://localhost:5173/` | Mobile: `9000000001` | OTP: `123456` |
-| **Front Desk** | `http://localhost:5173/staff/login` | Email: `frontdesk@demo.local` | `Demo@12345` |
-| **Referring Doctor** | `http://localhost:5173/staff/login` | Email: `doctor@demo.local` | `Demo@12345` |
+| **Patient** | `http://3.26.15.115/` *(or `http://localhost:5173/`)* | Mobile: `9000000001` | OTP: `123456` |
+| **Front Desk** | `http://3.26.15.115/staff/login` *(or `http://localhost:5173/staff/login`)* | Email: `frontdesk@demo.local` | `Demo@12345` |
+| **Referring Doctor** | `http://3.26.15.115/staff/login` *(or `http://localhost:5173/staff/login`)* | Email: `doctor@demo.local` | `Demo@12345` |
 
 ### 5.2 The 12 Specific Demo Scenarios
 All 12 scenarios from the brief and specification are pre-loaded in the seed data:

@@ -1,5 +1,5 @@
-GitHub: <REPLACE_WITH_REPO_URL>
-Live app: <REPLACE_WITH_LIVE_URL>
+GitHub: https://github.com/PrashantTarbundiya/lab-portal
+Live app: http://3.26.15.115
 
 # Technical Design Document (TDD): Diagnostic Lab Report-Delivery Portal
 
@@ -375,6 +375,47 @@ flowchart TD
 - **Elderly Patient Readability:** Base font size is 18px on patient screens (headings 24–28px). Line height in Telugu is explicitly set to $\ge 1.7$ to prevent character clipping.
 - **Touch Target Accessibility:** All buttons and interactive input fields maintain a minimum tap target height of 48px.
 
+### 8.2 Key Screens & Design Rationale
+
+1. **Patient Mobile Login & OTP Gate (`/`):**
+   - *Design Choice:* Ultra-minimal, single-purpose screen with a prominent 10-digit mobile input and a large, high-contrast "Get OTP" button.
+   - *Elderly UX:* Automatically formats numbers, shows large 6-box OTP entry with automatic autofocus progression, and includes an instant language switcher in the top right (`English | తెలుగు | हिन्दी`).
+   - *Demo Convenience:* In demo mode, a friendly banner provides one-click OTP auto-fill (`123456`) so reviewers never get stuck.
+
+2. **DPDP Statutory Consent Notice (`/consent`):**
+   - *Design Choice:* Clean modal dialogue detailing data processing purpose, 72-hour link retention, and statutory rights under DPDP Act 2023.
+   - *Rationale:* Builds trust with patients before displaying medical records. Includes an expandable "Why we ask" accordion and a prominent "I agree" button.
+
+3. **Family Profile Switcher ("Whose reports?"):**
+   - *Design Choice:* A clear, clean 2-column grid of patient profile cards (Self, Spouse, Children, Elderly Parents) associated with the shared family phone number.
+   - *Rationale:* Solves the Indian tier-2/3 reality where one family smartphone receives reports for multiple generations. Shows patient relation, age/sex, and count of active orders.
+
+4. **Patient Order List & Status View (`/patient/orders`):**
+   - *Design Choice:* Card-based list with distinct visual chips for order statuses: `Ready` (emerald), `Processing` (amber), and `Held / In Review` (calm blue).
+   - *Rationale:* Eliminates incoming status inquiry calls by clearly communicating that processing orders are underway, showing the estimated completion window.
+
+5. **Diagnostic Report View & Indic Translation (`/reports/:id`):**
+   - *Design Choice:* Prominent "What this means" summary card at the very top, before the full technical table. Out-of-range parameters are visually highlighted with directional arrows (↓ Low / ↑ High).
+   - *Telugu Readability:* Clicking `తెలుగు` immediately renders the pathologist-approved translation in native Telugu script with a generous 1.8 line-height to preserve complex conjunct glyphs.
+   - *Safety Loop:* Includes a prominent "Flag this summary" button allowing patients to report confusing explanations directly to the pathology desk.
+   - *Primary Action:* Large "Download Full Report (PDF)" button with NABL-compliant layout and digital QR verification mark.
+
+6. **Expiring Link Landing Gate (`/r/[token]`):**
+   - *Design Choice:* Privacy-first gateway showing only the lab name and a masked phone number (`••••••0001`). No medical data or patient names are exposed before OTP verification.
+   - *Safety Feature:* Features a prominent "This is not for me" button. If clicked, the link token is immediately invalidated in the database, writing an audit log and triggering an alert for front-desk staff.
+
+7. **Front-Desk Operations Console (`/staff` / `/staff/orders`):**
+   - *Design Choice:* High-density clinical table designed for rapid lookup by patient name, order ID, or last 4 digits of phone number.
+   - *Privacy by Default:* Phone numbers are masked (`••••••0003`). Staff must click "Reveal", which logs an immutable `PHONE_REVEAL` audit entry.
+   - *Actionable Controls:* Instant "Resend Link" button (enforcing a max 3 resends/day throttle) and delivery status chips (`Delivered`, `Read`, `Failed`).
+
+8. **Critical Callback Task Desk (`/staff/tasks`):**
+   - *Design Choice:* Filtered task desk separating critical callbacks from flagged summaries and wrong-number reports.
+   - *Clinical Safety:* Critical alerts require a mandatory clinical note before marking as done, which automatically un-holds the patient link.
+
+9. **90-Day Referring Doctor Portal (`/doctor`):**
+   - *Design Choice:* Filterable directory of all patients referred by the logged-in doctor over the past 90 days, with search by patient name, parameter abnormality filter, and direct PDF downloads.
+
 ---
 
 ## 9. Testing & Performance Metrics
@@ -417,3 +458,97 @@ The test suite is built on **Vitest** and covers:
 1. **Indic Font Rendering on Ultra-Legacy Devices:** Android devices running OS versions older than Android 7.0 may lack native glyph support for complex Telugu conjuncts if WebFonts fail to load over flaky 2G connections.
 2. **Concurrent Re-Import Collisions:** If two separate operators upload identical CSV files at the exact same millisecond, database row-level locking serializes the transaction, but one operator may experience a brief retry delay.
 3. **AI Language Nuances:** While the rule-based medical flags are $100\%$ accurate, Telugu and Hindi translations for esoteric non-template tests depend on LLM generation and require ongoing pathologist spot-checks via the weekly 50-sample review tool.
+
+---
+
+## 12. How to Run Locally (Step by Step)
+
+### Prerequisites:
+- **Node.js**: v20.x or v22.x LTS
+- **npm**: v10.x+
+- **Docker & Docker Compose**: For local PostgreSQL 16
+- **Git**
+
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/PrashantTarbundiya/lab-portal.git
+cd lab-portal
+```
+
+### Step 2: Environment Configuration
+Copy `.env.example` into server and client directories:
+```bash
+cp .env.example server/.env
+cp .env.example client/.env
+```
+
+### Step 3: Start Local PostgreSQL
+```bash
+docker compose up -d postgres
+```
+
+### Step 4: Database Setup & Seeding
+```bash
+cd server
+npm install
+npx prisma db push
+node prisma/seed.js
+cd ..
+```
+
+### Step 5: Start Frontend and Backend
+```bash
+# Terminal 1: Backend Express API (Port 3000)
+cd server && npm run dev
+
+# Terminal 2: Frontend React / Vite App (Port 5173)
+cd client && npm install && npm run dev
+```
+Open **`http://localhost:5173`** in your browser.
+
+---
+
+## 13. Deployment Architecture & Environment Variables (Names Only)
+
+The production build runs containerized on an AWS EC2 instance (`t3.micro` Ubuntu 24.04 LTS, Docker Compose, Nginx reverse proxy, PostgreSQL 16, and Express API):
+- **Live Frontend Portal:** `http://3.26.15.115`
+- **Live Backend API:** `http://3.26.15.115:3000` (and reverse proxied at `/api/*`)
+- **Health Check Endpoint:** `http://3.26.15.115/api/health`
+
+### Required Environment Variable Names:
+- `DATABASE_URL` *(Connection string for PostgreSQL database)*
+- `DIRECT_URL` *(Unpooled direct connection string for Prisma migrations)*
+- `APP_BASE_URL` *(Canonical public URL for generating 72-hour expiring links)*
+- `APP_HASH_SECRET` *(Secret key for HMAC-SHA256 phone number hashing)*
+- `LAB_NAME` *(Laboratory branding name shown in WhatsApp/SMS notifications)*
+- `OTP_DEMO_MODE` *(Set to true for demonstration OTP auto-fill and testing)*
+- `DEMO_PASSWORD` *(Universal password for demonstration staff/doctor accounts)*
+- `LINK_TTL_HOURS` *(Lifespan in hours for secure patient expiring links, e.g. 72)*
+- `OPENROUTER_API_KEY` *(API key for AI summary fallback engine)*
+- `OPENROUTER_MODEL` *(Model identifier for LLM summaries)*
+- `RAZORPAY_KEY_ID` *(Razorpay key ID for payment gateway integration)*
+- `RAZORPAY_KEY_SECRET` *(Razorpay key secret)*
+- `PORT` *(Backend server HTTP port, default 3000)*
+- `NODE_ENV` *(Runtime environment, development or production)*
+
+*(Per instructions, variable names only are listed above; zero secret values are included).*
+
+---
+
+## 14. Demo Credentials & Reviewer Verification Scenarios
+
+### Demo Logins:
+| Role | Portal URL | Username / Credential | Password / OTP |
+|---|---|---|---|
+| **Patient** | `http://3.26.15.115/` (or `http://localhost:5173/`) | Mobile: `9000000001` | OTP: `123456` |
+| **Front Desk Staff** | `http://3.26.15.115/staff/login` | Email: `frontdesk@demo.local` | `Demo@12345` |
+| **Referring Doctor** | `http://3.26.15.115/staff/login` | Email: `doctor@demo.local` | `Demo@12345` |
+
+### Key Seeded Verification Scenarios:
+1. **Low Haemoglobin (`ORD-71204` - Lakshmi Prasanna K):** Hb 10.2 g/dL (Low). Shows locked medical template explanation. Toggle language to **తెలుగు** to view high-clarity Telugu typography and line-height.
+2. **Critical Potassium Held (`ORD-71233` - Farzana Begum):** Potassium 6.8 mmol/L (Critical High). Link is held (`Held: callback needed`); no SMS sent. Staff opens `/staff/tasks`, records a clinical note, and marks callback complete to release link.
+3. **Normal Report (`ORD-71206` - Padmavathi D):** All parameters in normal range. Green summary card confirms "All tested parameters are within standard reference range".
+4. **Order Processing (`ORD-71219` - Venkata Rao M):** Displays `Processing` status in patient list and staff console. PDF download disabled until signed.
+5. **Wrong Number Invalidation (`ORD-71236` - Rajesh Varma):** Demonstrates "This is not for me" flow on landing gate. Link token is immediately revoked in DB and creates an alert for front desk staff.
+6. **Shared Family Phone (`9000000001`):** Demonstrates multi-patient family profile picker (Lakshmi, Srinivas, Bhavani, Raghavendra) on a single shared Indian mobile number.
+

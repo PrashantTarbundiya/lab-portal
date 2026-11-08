@@ -15,8 +15,8 @@ jobs:
     steps:
       - name: Send Heartbeat Ping
         env:
-          # Reads from GitHub Repo Secret TARGET_URL or falls back to your domain
-          TARGET_URL: ${{ secrets.TARGET_URL || 'https://lab-portal-backend.onrender.com' }}
+          # Reads from GitHub Repo Secret TARGET_URL or falls back to your AWS live IP
+          TARGET_URL: ${{ secrets.TARGET_URL || 'http://3.26.15.115' }}
         run: |
           TARGET="${TARGET_URL%/}/api/health"
           echo "============================================="

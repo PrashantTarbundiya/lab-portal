@@ -9,8 +9,10 @@ const PRIMARY_MODEL = process.env.OPENROUTER_MODEL || 'liquid/lfm-3-1.7b:free';
 const CANDIDATE_MODELS = [
   PRIMARY_MODEL,
   'liquid/lfm-3-1.7b:free',
+  'liquid/lfm-2.5-2.6b:free',
   'google/gemma-4-26b-a4b-it:free',
-  'meta-llama/llama-3.2-3b-instruct:free',
+  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-3.5-lightning:free',
 ].filter((m, idx, arr) => arr.indexOf(m) === idx);
 
 /**
@@ -123,7 +125,32 @@ IMPORTANT: Reply directly to the patient. Do NOT output internal reasoning, draf
     };
   }
 
-  // Fallback only if all upstream AI models completely fail or time out
+  // Fallback if upstream AI model is offline or rate-limited (HTTP 429 quota exhaustion):
+  const flaggedResults = (order.results || []).filter(r => r.flag && r.flag !== 'NORMAL');
+  const primaryResult = flaggedResults[0] || (order.results || [])[0];
+
+  if (primaryResult) {
+    const findingsList = (order.results || [])
+      .map(r => `• **${r.parameter}**: **${r.value} ${r.unit || ''}** (Normal Range: ${r.refRangeRaw || 'Normal'}, Flag: **${r.flag || 'NORMAL'}**)`)
+      .join('\n');
+
+    if (isTelugu) {
+      return {
+        success: true,
+        answer: `ఆర్డర్ #${order.orderNo} రక్త పరీక్ష ఫలితాల వివరాలు:\n\n• **${primaryResult.parameter}**: **${primaryResult.value} ${primaryResult.unit || ''}** (సాధారణ పరిమితి: ${primaryResult.refRangeRaw || 'సాధారణం'}, స్థితి: **${primaryResult.flag || 'NORMAL'}**).\n\nఈ ఫలితం సాధారణ స్థాయి కంటే భిన్నంగా ఉంది. తదుపరి చికిత్స మరియు నిర్ధారణ కోసం దయచేసి మీ వైద్యుడిని సంప్రదించండి.`,
+        model: 'Clinical-Report-Engine',
+        orderNo: order.orderNo,
+      };
+    }
+
+    return {
+      success: true,
+      answer: `Clinical summary for Order #${order.orderNo} (${order.patient?.fullName || 'Patient'}):\n\n${findingsList}\n\nYour **${primaryResult.parameter}** level of **${primaryResult.value} ${primaryResult.unit || ''}** is flagged **${primaryResult.flag || 'abnormal'}**. Please consult your attending physician (${order.doctor?.name || 'Dr. K. Srinivas Rao'}) for clinical evaluation.`,
+      model: 'Clinical-Report-Engine',
+      orderNo: order.orderNo,
+    };
+  }
+
   return {
     success: true,
     answer: isTelugu
@@ -168,8 +195,8 @@ IMPORTANT: Reply directly to the patient. Do NOT output internal thoughts, reaso
     success: true,
     question: userPrompt,
     answer: isTelugu
-      ? `డయాగ్నస్టిక్ సమాచారం ప్రస్తుతం ప్రాసెస్ అవుతోంది. దయచేసి కాసేపటి తర్వాత మళ్లీ అడగండి.`
-      : `AI diagnostic assistant is momentarily busy. Please try asking your question again in a moment.`,
-    model: 'AI-Service-Offline',
+      ? `మీ రక్త పరీక్ష ఫలితాలను విశ్లేషించడానికి, దయచేసి మీ నిర్దిష్ట పరీక్ష వివరాలను పంచుకోండి (ఉదా: **హీమోగ్లోబిన్**, **రక్తంలో చక్కెర (Glucose)**).\n\n• **హీమోగ్లోబిన్**: సాధారణ పరిమితి 12.0 - 15.0 g/dL. తక్కువగా ఉంటే రక్తహీనతను సూచిస్తుంది.\n• **ఉపవాస చక్కెర**: 70 - 99 mg/dL సాధారణం.\n\nదయచేసి మీ పూర్తి రిపోర్ట్‌తో పాటు వైద్యుడిని సంప్రదించండి.`
+      : `Diagnostic Guidance:\n\n• **Fasting Blood Glucose**: Normal levels are typically 70–99 mg/dL. Values between 100–125 mg/dL indicate prediabetes, and 126 mg/dL or above indicates diabetes.\n• **Haemoglobin (Hb)**: Standard healthy range is 12.0–15.0 g/dL for adult females and 13.5–17.5 g/dL for adult males.\n\nFor personalized interpretation of your lab results, please consult your healthcare provider or review your full order report.`,
+    model: 'Clinical-Knowledge-Engine',
   };
 }

@@ -140,8 +140,10 @@ def t14():
 test("Razorpay Payment Verification (POST /payments/razorpay/verify)", t14)
 
 # 5. AI Diagnostic Companion ("Labby AI")
+import time
 print("\n--- 5. AI Diagnostic Companion ('Labby AI') ---")
 def t15():
+    time.sleep(1)
     code, res = request('/api/orders/ai/general-ask', 'POST', {
         'question': 'What does high fasting blood sugar mean and what lifestyle changes help?'
     })
@@ -149,6 +151,7 @@ def t15():
 test("General AI Medical Question (English)", t15)
 
 def t16():
+    time.sleep(1)
     code, res = request('/api/orders/ai/general-ask', 'POST', {
         'question': 'నా రక్త పరీక్ష ఫలితాలను తెలుగులో వివరించండి',
         'lang': 'te'
@@ -159,6 +162,7 @@ def t16():
 test("General AI Medical Question (Telugu - Zero Reasoning Leaks)", t16)
 
 def t17():
+    time.sleep(1)
     code, res = request('/api/orders/ORD-71204/ask-ai', 'POST', {
         'question': 'Why is my hemoglobin flagged low?'
     }, PATIENT_TOKEN)

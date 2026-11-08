@@ -7,9 +7,10 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 const CANDIDATE_MODELS = [
-  process.env.OPENROUTER_MODEL || 'liquid/lfm-3-1.7b:free',
-  'nvidia/nemotron-3.5-lightning:free',
+  'liquid/lfm-3-1.7b:free',
   'google/gemma-4-26b-a4b-it:free',
+  'xingchen-agi/xing4.0-29b-a4b:free',
+  'nvidia/nemotron-3.5-lightning:free',
 ];
 
 /**
@@ -22,11 +23,13 @@ function cleanAIOutput(text) {
     .replace(/^Here('s| is) a thinking process:[\s\S]*?(?=\n\n(?:[A-Z0-9#\*]|$))/i, '')
     .trim();
 
-  // If a reasoning model dumps a step-by-step thinking block before the actual output
-  if (/^1\.\s+\*\*Analyze User Input:\*\*/i.test(cleaned)) {
-    const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|మీరు|నమస్కారం|[A-Z][a-z]+,))/i);
+  // If a reasoning model dumps a step-by-step thinking block
+  if (/^1\.\s+\*\*Analyze/i.test(cleaned) || /Analyze User Input/i.test(cleaned)) {
+    const lastDivider = cleaned.search(/(?:\n\n(?:\*\*About|\*\*Your|###|Hello|Dear|మీరు|నమస్కారం|[A-Z][a-z]+,))/i);
     if (lastDivider !== -1) {
       cleaned = cleaned.substring(lastDivider).trim();
+    } else {
+      return '';
     }
   }
 
@@ -252,7 +255,8 @@ Results:
 ${resultsSummary}
 
 Respond in ${effectiveLang === 'te' ? 'Telugu script (తెలుగు)' : effectiveLang === 'hi' ? 'Hindi script (हिन्दी)' : 'clear English'}.
-Highlight key terms with **bold**, use bullet points, and present comparisons in a clean markdown table.`;
+Highlight key terms with **bold**, use bullet points, and present comparisons in a clean markdown table.
+IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
 
   // 1. Try OpenRouter live models
   const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt);
@@ -326,7 +330,8 @@ export async function handleGeneralAskAI(userPrompt, lang = 'en') {
 Explain the user's question clearly, helpfully, and empathetically.
 Question: "${userPrompt}"
 Target Language: ${effectiveLang === 'te' ? 'Telugu script (తెలుగు)' : effectiveLang === 'hi' ? 'Hindi script (हिन्दी)' : 'clear English'}.
-Highlight key terms with **bold**, use bullet points, and present numerical ranges in clean markdown tables.`;
+Highlight key terms with **bold**, use bullet points, and present numerical ranges in clean markdown tables.
+IMPORTANT: Reply directly to the patient. Do NOT output internal analysis steps, drafts, or reasoning steps (do NOT write "1. Analyze User Input"). Begin immediately with your response.`;
 
   // 1. Try OpenRouter live models
   const liveResult = await queryOpenRouterModels(systemPrompt, userPrompt);

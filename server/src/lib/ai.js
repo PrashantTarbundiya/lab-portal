@@ -4,14 +4,11 @@
  */
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-const PRIMARY_MODEL = process.env.OPENROUTER_MODEL || 'liquid/lfm-3-1.7b:free';
+const PRIMARY_MODEL = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl';
 
 const CANDIDATE_MODELS = [
   PRIMARY_MODEL,
-  'liquid/lfm-3-1.7b:free',
-  'liquid/lfm-2.5-2.6b:free',
-  'google/gemma-4-26b-a4b-it:free',
-  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-3.5-super-vl',
   'nvidia/nemotron-3.5-lightning:free',
 ].filter((m, idx, arr) => arr.indexOf(m) === idx);
 
@@ -38,7 +35,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
   for (const model of CANDIDATE_MODELS) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout for full generation
+      const timeout = setTimeout(() => controller.abort(), 35000); // 35s timeout for full generation
 
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -55,7 +52,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
             { role: 'user', content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 1500,
+          max_tokens: 2000,
         }),
         signal: controller.signal,
       });

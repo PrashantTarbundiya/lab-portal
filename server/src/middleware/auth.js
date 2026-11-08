@@ -45,36 +45,54 @@ export async function authenticate(req, res, next) {
       const ident = parts[1];
 
       if (kind === 'demo-staff') {
-        const dbUser = {
-          id: 'staff-demo-1',
-          email: ident || 'frontdesk@demo.local',
-          name: 'Staff Front Desk Coordinator',
-          role: 'FRONT_DESK',
-        };
+        let dbUser = await prisma.user.findFirst({
+          where: { role: 'FRONT_DESK' },
+          include: { doctor: true },
+        });
+        if (!dbUser) {
+          dbUser = {
+            id: 'staff-demo-1',
+            email: ident || 'frontdesk@demo.local',
+            name: 'Staff Front Desk Coordinator',
+            role: 'FRONT_DESK',
+          };
+        }
         req.dbUser = dbUser;
         req.actorType = 'STAFF';
         req.user = { id: dbUser.id, email: dbUser.email };
         return next();
       } else if (kind === 'demo-doctor') {
-        const dbUser = {
-          id: 'doc-demo-1',
-          email: ident || 'doctor@demo.local',
-          name: 'Dr. Ramanaiah, MD',
-          role: 'DOCTOR',
-        };
+        let dbUser = await prisma.user.findFirst({
+          where: { role: 'DOCTOR' },
+          include: { doctor: true },
+        });
+        if (!dbUser) {
+          dbUser = {
+            id: 'doc-demo-1',
+            email: ident || 'doctor@demo.local',
+            name: 'Dr. Ramanaiah, MD',
+            role: 'DOCTOR',
+          };
+        }
         req.dbUser = dbUser;
         req.actorType = 'DOCTOR';
         req.user = { id: dbUser.id, email: dbUser.email };
         return next();
       } else if (kind === 'demo-admin') {
-        req.dbUser = {
-          id: 'admin-super-1',
-          email: ident || 'superadmin@company-a-hospital.org',
-          name: 'Dr. M. Ramanathan, CMO (Hospital Super Admin)',
-          role: 'ADMIN',
-        };
+        let dbUser = await prisma.user.findFirst({
+          where: { role: 'ADMIN' },
+        });
+        if (!dbUser) {
+          dbUser = {
+            id: 'admin-super-1',
+            email: ident || 'superadmin@company-a-hospital.org',
+            name: 'Dr. M. Ramanathan, CMO (Hospital Super Admin)',
+            role: 'ADMIN',
+          };
+        }
+        req.dbUser = dbUser;
         req.actorType = 'ADMIN';
-        req.user = { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org' };
+        req.user = { id: dbUser.id, email: dbUser.email };
         return next();
       } else if (kind === 'demo-patient') {
         let rawPhone = (ident || '+919000000001').trim();
@@ -82,31 +100,8 @@ export async function authenticate(req, res, next) {
         const digits = rawPhone.replace(/\D/g, '');
         const last10 = digits.slice(-10) || '9000000001';
         const normalized = `+91${last10}`;
-
-        // Instant mock account for demo reviewer flows (zero remote DB latency)
-        const demoAccount = {
-          id: 'cmw06qpbr000ntl10ox2xgwk1',
-          mobileE164: normalized,
-          preferredLang: 'te',
-          consentVersion: '1.0',
-          consentAt: new Date().toISOString(),
-          patients: [
-            { id: 'cmw06qpoc000ptl10sl19di9o', fullName: 'Lakshmi Prasanna K', relation: 'SELF', sex: 'F' },
-            { id: 'cmw06qq0i000rtl10qfeib6oc', fullName: 'Srinivas Rao T', relation: 'SPOUSE', sex: 'M' },
-            { id: 'cmw06qq6s000ttl10awv7mrde', fullName: 'Bhavani K', relation: 'CHILD', sex: 'F' },
-            { id: 'cmw06qqde000vtl10gfymhuj7', fullName: 'Raghavendra T', relation: 'CHILD', sex: 'M' },
-            { id: 'cmw0fmtsi0001tl7454v6jaqu', fullName: 'Kavya Murthy', relation: 'SELF', sex: 'F' },
-          ],
-        };
-
-        if (last10 === '9000000001') {
-          req.dbAccount = demoAccount;
-          req.actorType = 'PATIENT';
-          req.user = { id: demoAccount.id, phone: demoAccount.mobileE164 };
-          return next();
-        }
-
         const mobileH = hashMobile(normalized);
+
         let dbAccount = null;
         try {
           dbAccount = await prisma.account.findFirst({
@@ -120,17 +115,20 @@ export async function authenticate(req, res, next) {
           });
 
           if (!dbAccount) {
-            dbAccount = demoAccount;
+            dbAccount = await prisma.account.findFirst({
+              include: { patients: true },
+            });
           }
         } catch (e) {
           console.warn('Prisma patient lookup fallback:', e?.message);
-          dbAccount = demoAccount;
         }
 
-        req.dbAccount = dbAccount;
-        req.actorType = 'PATIENT';
-        req.user = { id: dbAccount.supabaseId || dbAccount.id, phone: dbAccount.mobileE164 };
-        return next();
+        if (dbAccount) {
+          req.dbAccount = dbAccount;
+          req.actorType = 'PATIENT';
+          req.user = { id: dbAccount.id, phone: dbAccount.mobileE164 };
+          return next();
+        }
       }
     }
 
@@ -152,35 +150,32 @@ export async function authenticate(req, res, next) {
         const isStaff = url.includes('/staff') || url.includes('/lab') || url.includes('/tasks') || token.includes('staff');
 
         if (isDoc) {
-          req.dbUser = { id: 'doc-demo-1', email: 'doctor@demo.local', name: 'Dr. Ramanaiah, MD', role: 'DOCTOR' };
+          const dbUser = await prisma.user.findFirst({ where: { role: 'DOCTOR' }, include: { doctor: true } }) || { id: 'doc-demo-1', email: 'doctor@demo.local', name: 'Dr. Ramanaiah, MD', role: 'DOCTOR' };
+          req.dbUser = dbUser;
           req.actorType = 'DOCTOR';
-          req.user = { id: 'doc-demo-1', email: 'doctor@demo.local' };
+          req.user = { id: dbUser.id, email: dbUser.email };
           return next();
         } else if (isAdmin) {
-          req.dbUser = { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org', name: 'Dr. M. Ramanathan, CMO', role: 'ADMIN' };
+          const dbUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } }) || { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org', name: 'Dr. M. Ramanathan, CMO', role: 'ADMIN' };
+          req.dbUser = dbUser;
           req.actorType = 'ADMIN';
-          req.user = { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org' };
+          req.user = { id: dbUser.id, email: dbUser.email };
           return next();
         } else if (isStaff) {
-          req.dbUser = { id: 'staff-demo-1', email: 'frontdesk@demo.local', name: 'Staff Front Desk Coordinator', role: 'FRONT_DESK' };
+          const dbUser = await prisma.user.findFirst({ where: { role: 'FRONT_DESK' }, include: { doctor: true } }) || { id: 'staff-demo-1', email: 'frontdesk@demo.local', name: 'Staff Front Desk Coordinator', role: 'FRONT_DESK' };
+          req.dbUser = dbUser;
           req.actorType = 'STAFF';
-          req.user = { id: 'staff-demo-1', email: 'frontdesk@demo.local' };
+          req.user = { id: dbUser.id, email: dbUser.email };
           return next();
         } else {
-          // Default to demo patient account
-          req.dbAccount = {
-            id: 'cmw06qpbr000ntl10ox2xgwk1',
-            mobileE164: '+919000000001',
-            preferredLang: 'te',
-            consentVersion: '1.0',
-            consentAt: new Date().toISOString(),
-            patients: [
-              { id: 'cmw06qpoc000ptl10sl19di9o', fullName: 'Lakshmi Prasanna K', relation: 'SELF' },
-            ],
-          };
-          req.actorType = 'PATIENT';
-          req.user = { id: 'cmw06qpbr000ntl10ox2xgwk1', phone: '+919000000001' };
-          return next();
+          // Default to real patient account in PostgreSQL
+          const dbAccount = await prisma.account.findFirst({ include: { patients: true } });
+          if (dbAccount) {
+            req.dbAccount = dbAccount;
+            req.actorType = 'PATIENT';
+            req.user = { id: dbAccount.id, phone: dbAccount.mobileE164 };
+            return next();
+          }
         }
       }
       return res.status(401).json({ error: 'Invalid or expired token' });
@@ -420,19 +415,16 @@ export function requireRole(...roles) {
 /**
  * Require the request to have a patient account (dbAccount).
  */
-export function requirePatient(req, res, next) {
+export async function requirePatient(req, res, next) {
   if (!req.dbAccount) {
     const isDemoEnv = process.env.OTP_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
     if (isDemoEnv) {
-      req.dbAccount = {
-        id: 'cmw06qpbr000ntl10ox2xgwk1',
-        mobileE164: '+919000000001',
-        preferredLang: 'te',
-        consentVersion: '1.0',
-        consentAt: new Date().toISOString(),
-      };
-      req.actorType = 'PATIENT';
-      return next();
+      const dbAccount = await prisma.account.findFirst({ include: { patients: true } });
+      if (dbAccount) {
+        req.dbAccount = dbAccount;
+        req.actorType = 'PATIENT';
+        return next();
+      }
     }
     return res.status(403).json({ error: 'Patient account required' });
   }

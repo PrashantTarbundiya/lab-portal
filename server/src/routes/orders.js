@@ -496,8 +496,13 @@ router.get('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const order = await prisma.order.findUnique({
-      where: { id },
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id },
+          { orderNo: id },
+        ],
+      },
       include: {
         patient: { include: { account: true } },
         doctor: true,
@@ -750,8 +755,13 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const order = await prisma.order.findUnique({
-      where: { id },
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id },
+          { orderNo: id },
+        ],
+      },
       include: {
         patient: true,
       },
@@ -1039,8 +1049,13 @@ router.post('/:id/ask-ai', optionalAuth, async (req, res) => {
       return res.status(400).json({ error: 'Please provide a question or prompt for the AI' });
     }
 
-    const order = await prisma.order.findUnique({
-      where: { id },
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id },
+          { orderNo: id },
+        ],
+      },
       include: {
         results: true,
         patient: { include: { account: true } },

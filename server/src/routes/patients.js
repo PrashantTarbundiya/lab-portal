@@ -12,101 +12,16 @@ const abhaStore = new Map(); // in-memory ABHA store keyed by accountId
 router.get('/profiles', authenticate, async (req, res) => {
   try {
     if (!req.dbAccount) {
-      req.dbAccount = {
-        id: 'cmw06qpbr000ntl10ox2xgwk1',
-        mobileE164: '+919000000001',
-        preferredLang: 'te',
-        consentVersion: '1.0',
-        consentAt: new Date().toISOString(),
-      };
+      req.dbAccount = await prisma.account.findFirst({ include: { patients: true } });
+    }
+
+    if (!req.dbAccount) {
+      return res.status(404).json({ error: 'Account not found' });
     }
 
     const hospitalSlug = req.query.hospitalSlug;
 
-    // Standard demo order-to-hospital mapping
-    const DEMO_ORDER_HOSPITAL_MAP = [
-      { orderNo: 'ORD-71204', patientId: 'cmw06qpoc000ptl10sl19di9o', hospitalSlug: 'company-a-main-hospital' },
-      { orderNo: 'ORD-71250', patientId: 'cmw06qpoc000ptl10sl19di9o', hospitalSlug: 'company-a-main-hospital' },
-      { orderNo: 'ORD-69102', patientId: 'cmw06qpoc000ptl10sl19di9o', hospitalSlug: 'company-a-central-lab' },
-      { orderNo: 'ORD-71205', patientId: 'cmw06qq0i000rtl10qfeib6oc', hospitalSlug: 'manipal-hospital' },
-      { orderNo: 'ORD-68910', patientId: 'cmw06qq0i000rtl10qfeib6oc', hospitalSlug: 'company-a-central-lab' },
-      { orderNo: 'ORD-71239', patientId: 'cmw06qq6s000ttl10awv7mrde', hospitalSlug: 'ggh-vijayawada' },
-      { orderNo: 'ORD-78486', patientId: 'cmw0fmtsi0001tl7454v6jaqu', hospitalSlug: 'apollo-hospital-vijayawada' },
-      { orderNo: 'ORD-92892', patientId: 'cmw0fmtsi0001tl7454v6jaqu', hospitalSlug: 'apollo-hospital-vijayawada' },
-    ];
-
-    const getOrderCountForPatient = (patientId) => {
-      if (!hospitalSlug || hospitalSlug === 'all') {
-        return DEMO_ORDER_HOSPITAL_MAP.filter((o) => o.patientId === patientId).length;
-      }
-      return DEMO_ORDER_HOSPITAL_MAP.filter(
-        (o) => o.patientId === patientId && o.hospitalSlug === hospitalSlug
-      ).length;
-    };
-
-    const defaultFamily = [
-      {
-        id: 'cmw06qpoc000ptl10sl19di9o',
-        fullName: 'Lakshmi Prasanna K',
-        sex: 'F',
-        dob: '1978-04-12T00:00:00.000Z',
-        relation: 'SELF',
-        orderCount: getOrderCountForPatient('cmw06qpoc000ptl10sl19di9o'),
-        totalNetworkOrderCount: 3,
-      },
-      {
-        id: 'cmw06qq0i000rtl10qfeib6oc',
-        fullName: 'Srinivas Rao T',
-        sex: 'M',
-        dob: '1975-08-22T00:00:00.000Z',
-        relation: 'SPOUSE',
-        orderCount: getOrderCountForPatient('cmw06qq0i000rtl10qfeib6oc'),
-        totalNetworkOrderCount: 2,
-      },
-      {
-        id: 'cmw06qq6s000ttl10awv7mrde',
-        fullName: 'Bhavani K',
-        sex: 'F',
-        dob: '2005-11-25T00:00:00.000Z',
-        relation: 'CHILD',
-        orderCount: getOrderCountForPatient('cmw06qq6s000ttl10awv7mrde'),
-        totalNetworkOrderCount: 1,
-      },
-      {
-        id: 'cmw06qqde000vtl10gfymhuj7',
-        fullName: 'Raghavendra T',
-        sex: 'M',
-        dob: '2008-03-10T00:00:00.000Z',
-        relation: 'CHILD',
-        orderCount: getOrderCountForPatient('cmw06qqde000vtl10gfymhuj7'),
-        totalNetworkOrderCount: 0,
-      },
-      {
-        id: 'cmw0fmtsi0001tl7454v6jaqu',
-        fullName: 'Kavya Murthy',
-        sex: 'F',
-        dob: null,
-        relation: 'SELF',
-        orderCount: getOrderCountForPatient('cmw0fmtsi0001tl7454v6jaqu'),
-        totalNetworkOrderCount: 2,
-      },
-    ];
-
-    // For demo account, immediately return demo family members (0ms latency)
-    if (req.dbAccount.mobileE164?.includes('9000000001') || req.dbAccount.id === 'cmw06qpbr000ntl10ox2xgwk1') {
-      return res.json({
-        account: {
-          id: req.dbAccount.id,
-          mobileE164: req.dbAccount.mobileE164,
-          preferredLang: req.dbAccount.preferredLang || 'te',
-          consentVersion: req.dbAccount.consentVersion || '1.0',
-          consentAt: req.dbAccount.consentAt || new Date().toISOString(),
-        },
-        patients: defaultFamily,
-        activeHospitalSlug: hospitalSlug || 'all',
-      });
-    }
-
+    // Fetch real family members for this account from PostgreSQL
     const patients = await prisma.patient.findMany({
       where: { accountId: req.dbAccount.id },
       include: {
@@ -117,14 +32,15 @@ router.get('/profiles', authenticate, async (req, res) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    const mapped = patients.length > 0 ? patients.map(p => ({
+    const mapped = patients.map((p) => ({
       id: p.id,
       fullName: p.fullName,
       sex: p.sex,
       dob: p.dob,
       relation: p.relation,
       orderCount: p._count?.orders ?? 0,
-    })) : defaultFamily;
+      totalNetworkOrderCount: p._count?.orders ?? 0,
+    }));
 
     return res.json({
       account: {
@@ -135,25 +51,11 @@ router.get('/profiles', authenticate, async (req, res) => {
         consentAt: req.dbAccount.consentAt || new Date().toISOString(),
       },
       patients: mapped,
+      activeHospitalSlug: hospitalSlug || 'all',
     });
   } catch (err) {
-    console.warn('GET /api/patients/profiles fallback:', err.message);
-    return res.json({
-      account: {
-        id: req.dbAccount?.id || 'cmw06qpbr000ntl10ox2xgwk1',
-        mobileE164: req.dbAccount?.mobileE164 || '+919000000001',
-        preferredLang: req.dbAccount?.preferredLang || 'te',
-        consentVersion: '1.0',
-        consentAt: new Date().toISOString(),
-      },
-      patients: [
-        { id: 'cmw06qpoc000ptl10sl19di9o', fullName: 'Lakshmi Prasanna K', sex: 'F', dob: '1978-04-12T00:00:00.000Z', relation: 'SELF', orderCount: 3 },
-        { id: 'cmw06qq0i000rtl10qfeib6oc', fullName: 'Srinivas Rao T', sex: 'M', dob: '1975-08-22T00:00:00.000Z', relation: 'SPOUSE', orderCount: 2 },
-        { id: 'cmw06qq6s000ttl10awv7mrde', fullName: 'Bhavani K', sex: 'F', dob: '2005-11-25T00:00:00.000Z', relation: 'CHILD', orderCount: 1 },
-        { id: 'cmw06qqde000vtl10gfymhuj7', fullName: 'Raghavendra T', sex: 'M', dob: '2008-03-10T00:00:00.000Z', relation: 'CHILD', orderCount: 0 },
-        { id: 'cmw0fmtsi0001tl7454v6jaqu', fullName: 'Kavya Murthy', sex: 'F', dob: null, relation: 'SELF', orderCount: 2 },
-      ],
-    });
+    console.error('GET /api/patients/profiles error:', err);
+    return res.status(500).json({ error: 'Failed to retrieve family profiles' });
   }
 });
 

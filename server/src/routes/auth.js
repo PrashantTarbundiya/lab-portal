@@ -344,20 +344,11 @@ router.post('/otp/verify', async (req, res) => {
   } catch (err) {
     console.warn('otp/verify Prisma fallback:', err.message);
     const normalized = '+919000000001';
+    let account = await prisma.account.findFirst({ include: { patients: true } });
     return res.json({
       success: true,
       token: `demo-patient:${normalized}`,
-      account: {
-        id: 'cmw06qpbr000ntl10ox2xgwk1',
-        mobileE164: normalized,
-        preferredLang: 'te',
-        consentVersion: '1.0',
-        consentAt: new Date().toISOString(),
-        patients: [
-          { id: 'cmw06qpoc000ptl10sl19di9o', fullName: 'Lakshmi Prasanna K', relation: 'SELF', sex: 'F' },
-          { id: 'cmw06qq0i000rtl10qfeib6oc', fullName: 'Srinivas Rao T', relation: 'SPOUSE', sex: 'M' },
-        ],
-      },
+      account,
       role: 'PATIENT',
     });
   }
@@ -426,20 +417,11 @@ router.post('/demo-login', async (req, res) => {
   } catch (err) {
     console.warn('demo-login Prisma fallback:', err.message);
     const normalized = '+919000000001';
+    let account = await prisma.account.findFirst({ include: { patients: true } });
     return res.json({
       success: true,
       token: `demo-patient:${normalized}`,
-      account: {
-        id: 'cmw06qpbr000ntl10ox2xgwk1',
-        mobileE164: normalized,
-        preferredLang: 'te',
-        consentVersion: '1.0',
-        consentAt: new Date().toISOString(),
-        patients: [
-          { id: 'cmw06qpoc000ptl10sl19di9o', fullName: 'Lakshmi Prasanna K', relation: 'SELF', sex: 'F' },
-          { id: 'cmw06qq0i000rtl10qfeib6oc', fullName: 'Srinivas Rao T', relation: 'SPOUSE', sex: 'M' },
-        ],
-      },
+      account,
       role: 'PATIENT',
     });
   }

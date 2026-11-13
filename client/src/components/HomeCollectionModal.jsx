@@ -143,18 +143,24 @@ export default function HomeCollectionModal({ isOpen, onClose, defaultPatientNam
   const handleOpenLiveRazorpay = async () => {
     const rawPrice = Number(selectedPkg.price.replace(/[^\d]/g, '')) || 450;
 
-    const orderRes = await api('/payments/razorpay/order', {
-      method: 'POST',
-      body: {
-        amount: rawPrice,
-        receipt: `rcpt_hc_${Date.now()}`,
-        serviceType: 'HOME_SAMPLE_COLLECTION',
-      },
-      token,
-    }).catch(() => null);
+    let orderRes = null;
+    try {
+      orderRes = await api('/payments/razorpay/order', {
+        method: 'POST',
+        body: {
+          amount: rawPrice,
+          receipt: `rcpt_hc_${Date.now()}`,
+          serviceType: 'HOME_SAMPLE_COLLECTION',
+        },
+        token,
+      });
+    } catch (e) {
+      console.warn('Backend payment order note:', e?.message);
+    }
 
     const activeKey = orderRes?.keyId || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || '';
-    const hasRealRazorpayKey = Boolean(activeKey && activeKey.startsWith('rzp_'));
+    const hasLiveOrder = Boolean(orderRes?.success && orderRes?.order?.id && !orderRes?.isMock);
+    const hasRealRazorpayKey = Boolean(activeKey && activeKey.startsWith('rzp_') && hasLiveOrder);
 
     if (hasRealRazorpayKey && typeof window !== 'undefined' && window.Razorpay) {
       try {
@@ -164,7 +170,7 @@ export default function HomeCollectionModal({ isOpen, onClose, defaultPatientNam
           currency: 'INR',
           name: 'Company A Diagnostics',
           description: selectedPkg.name,
-          order_id: orderRes?.order?.id,
+          order_id: orderRes.order.id,
           prefill: {
             name: defaultPatientName || 'Lakshmi Prasanna K',
             contact: '9000000001',
@@ -189,6 +195,12 @@ export default function HomeCollectionModal({ isOpen, onClose, defaultPatientNam
             },
           },
         });
+
+        rzp.on && rzp.on('payment.failed', function (resp) {
+          console.warn('Razorpay home collection payment failed:', resp?.error);
+          setIsRazorpayOpen(true);
+        });
+
         rzp.open();
         return;
       } catch (err) {

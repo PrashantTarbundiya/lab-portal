@@ -497,18 +497,28 @@ export default function HospitalLocatorAndBooking() {
       upiId: 'companya.care@hdfcbank',
     };
 
-    // Check if real live or test Razorpay key is configured
-    const orderRes = await api('/payments/razorpay/order', {
-      method: 'POST',
-      body: {
-        amount: fee,
-        hospitalId: facility?.id,
-        serviceType: targetApt ? targetApt.type : bookingType,
-      },
-    }).catch(() => null);
+    if (targetApt) {
+      setTargetAppointmentForRazorpay(targetApt);
+    }
+
+    // Check if backend can generate a genuine live Razorpay order
+    let orderRes = null;
+    try {
+      orderRes = await api('/payments/razorpay/order', {
+        method: 'POST',
+        body: {
+          amount: fee,
+          hospitalId: facility?.id,
+          serviceType: targetApt ? targetApt.type : bookingType,
+        },
+      });
+    } catch (e) {
+      console.warn('Backend payment order note:', e?.message);
+    }
 
     const activeKey = orderRes?.keyId || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || '';
-    const hasRealRazorpayKey = Boolean(activeKey && activeKey.startsWith('rzp_'));
+    const hasLiveOrder = Boolean(orderRes?.success && orderRes?.order?.id && !orderRes?.isMock);
+    const hasRealRazorpayKey = Boolean(activeKey && activeKey.startsWith('rzp_') && hasLiveOrder);
 
     if (hasRealRazorpayKey && typeof window !== 'undefined' && window.Razorpay) {
       try {
@@ -520,7 +530,7 @@ export default function HospitalLocatorAndBooking() {
           description: targetApt
             ? `Settlement for OPD Token #${targetApt.tokenNo}`
             : (bookingType === 'DIAGNOSTIC_TEST' ? testName : selectedDoctor),
-          order_id: orderRes?.order?.id,
+          order_id: orderRes.order.id,
           prefill: {
             name: patientName || 'Lakshmi Prasanna K',
             contact: '9000000001',
@@ -575,6 +585,11 @@ export default function HospitalLocatorAndBooking() {
           },
         });
 
+        rzp.on && rzp.on('payment.failed', function (resp) {
+          console.warn('Razorpay live payment failed or closed:', resp?.error);
+          setIsRazorpayModalOpen(true);
+        });
+
         rzp.open();
         return;
       } catch (err) {
@@ -583,9 +598,6 @@ export default function HospitalLocatorAndBooking() {
     }
 
     // High-fidelity integrated Razorpay Test Mode Gateway
-    if (targetApt) {
-      setTargetAppointmentForRazorpay(targetApt);
-    }
     setIsRazorpayModalOpen(true);
   };
 

@@ -21,7 +21,7 @@ export async function authenticate(req, res, next) {
 
     // In demo mode or local review, allow direct PDF view/download without forcing 401
     if (!token) {
-      const isPdfRoute = req.path.endsWith('/pdf') || (req.originalUrl && req.originalUrl.includes('/pdf'));
+      const isPdfRoute = (req.path && req.path.endsWith('/pdf')) || (req.originalUrl && req.originalUrl.includes('/pdf'));
       const isDemoEnv = process.env.OTP_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
       if (isDemoEnv) {
         if (req.originalUrl?.includes('/doctor')) {
@@ -79,17 +79,12 @@ export async function authenticate(req, res, next) {
         req.user = { id: dbUser.id, email: dbUser.email };
         return next();
       } else if (kind === 'demo-admin') {
-        let dbUser = await prisma.user.findFirst({
-          where: { role: 'ADMIN' },
-        });
-        if (!dbUser) {
-          dbUser = {
-            id: 'admin-super-1',
-            email: ident || 'superadmin@company-a-hospital.org',
-            name: 'Dr. M. Ramanathan, CMO (Hospital Super Admin)',
-            role: 'ADMIN',
-          };
-        }
+        const dbUser = {
+          id: 'admin-super-1',
+          email: ident || 'superadmin@company-a-hospital.org',
+          name: 'Dr. M. Ramanathan, CMO (Hospital Super Admin)',
+          role: 'ADMIN',
+        };
         req.dbUser = dbUser;
         req.actorType = 'ADMIN';
         req.user = { id: dbUser.id, email: dbUser.email };
@@ -156,7 +151,7 @@ export async function authenticate(req, res, next) {
           req.user = { id: dbUser.id, email: dbUser.email };
           return next();
         } else if (isAdmin) {
-          const dbUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } }) || { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org', name: 'Dr. M. Ramanathan, CMO', role: 'ADMIN' };
+          const dbUser = { id: 'admin-super-1', email: 'superadmin@company-a-hospital.org', name: 'Dr. M. Ramanathan, CMO', role: 'ADMIN' };
           req.dbUser = dbUser;
           req.actorType = 'ADMIN';
           req.user = { id: dbUser.id, email: dbUser.email };

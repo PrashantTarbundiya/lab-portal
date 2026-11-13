@@ -48,7 +48,18 @@
    - 7.1 Access Log Ledger & Search
    - 7.2 Exporting Tamper-Evident Audit Trails (CSV)
    - 7.3 Monitoring KPI Reductions (Status Calls & Paper Usage)
-8. [Edge Cases, Error Handling & FAQ](#8-edge-cases-error-handling--faq)
+8. [Role 7: Multi-Hospital CMO Super Admin & Facility Superintendents](#8-role-7-multi-hospital-cmo-super-admin--facility-superintendents)
+   - 8.1 Multi-Hospital Network Management (`/admin`)
+   - 8.2 Hospital Facility Superintendent Console (`/:hospitalSlug/admin`)
+9. [Core Feature: Hospital Locator, OPD Booking & Razorpay Gateway](#9-core-feature-hospital-locator-opd-booking--razorpay-gateway)
+   - 9.1 Interactive Facility Locator & Department Navigation (`/book-appointment`)
+   - 9.2 Booking an OPD Doctor Consultation or Diagnostic Test
+   - 9.3 Seamless Razorpay Online Settlement & Express Token Generation
+10. [Core Feature: "Labby" Clinical AI Copilot & Patient Educator](#10-core-feature-labby-clinical-ai-copilot--patient-educator)
+    - 10.1 Accessing the AI Copilot
+    - 10.2 Trilingual Healthcare Education (English, Telugu, Hindi)
+    - 10.3 Strict Clinical & Safety Guardrails
+11. [Edge Cases, Error Handling & FAQ](#11-edge-cases-error-handling--faq)
 
 ---
 
@@ -347,7 +358,80 @@ Navigate to the **Analytics Dashboard** (`/staff/analytics`):
 
 ---
 
-## 8. Edge Cases, Error Handling & FAQ
+## 8. Role 7: Multi-Hospital CMO Super Admin & Facility Superintendents
+
+### 8.1 Multi-Hospital Network Management (`/admin`)
+1. Access the **Super Admin Console** from the top navigation bar or navigate to `/admin`.
+2. Provides unified oversight across all 6 healthcare campuses of Company A Diagnostics & Hospitals in the Vijayawada / Krishna district:
+   - **Main Hospital & Trauma Center (Governorpet)**: 450 Beds, 24/7 Tertiary Emergency.
+   - **Super Specialty Wing (Bunder Road)**: Cardiology, Oncology & Nephrology.
+   - **Children & Maternity Hospital (Suryaraopet)**: Pediatrics, NICU & Obstetrics.
+   - **Diagnostic Center & Day Care Clinic (One Town)**: Express Specimen Processing & Pathology.
+   - **Multi-Specialty Facility (Auto Nagar)**: Orthopedics, Industrial Health & Occupational Medicine.
+   - **Health Center (Benz Circle)**: Preventive Healthcare & Outpatient Consultations.
+3. Key capabilities:
+   - Live multi-center bed occupancy and intensive care capacity tracking.
+   - Cross-facility laboratory throughput and turnaround time (TAT) monitoring.
+   - Aggregated network revenue, Razorpay settlement ledgers, and cash collections.
+   - Global DPDP Act compliance audit ledger inspection.
+
+### 8.2 Hospital Facility Superintendent Console (`/:hospitalSlug/admin`)
+1. Access directly via the hospital selector in the top bar or via `/hospital/:hospitalSlug/admin`.
+2. Capabilities for local medical directors and hospital superintendents:
+   - Departmental OPD doctor roster and shift management.
+   - Real-time waiting queue inspection and token status tracking.
+   - Local specimen accessioning metrics and pathologist backlog identification.
+
+---
+
+## 9. Core Feature: Hospital Locator, OPD Booking & Razorpay Gateway
+
+### 9.1 Interactive Facility Locator & Department Navigation (`/book-appointment`)
+1. Navigate to **Book OPD & Lab Test** from the top Services menu or directly via `/book-appointment`.
+2. Filter through the 6 regional healthcare centers by proximity, specialty, emergency availability, and diagnostic equipment.
+3. View detailed facility profiles, contact coordinates, operating hours, and mapped Google Maps directions.
+
+### 9.2 Booking an OPD Doctor Consultation or Diagnostic Test
+1. Select the desired facility and choose between **OPD Doctor Consultation** or **Diagnostic Lab Test**.
+2. Select the clinical department (Cardiology, Neurology, Pediatrics, General Medicine, Orthopedics, Pathology).
+3. Pick your preferred physician, available consultation date, and morning/evening time slot.
+4. Review the fixed clinical consultation fee (₹500 - ₹1,250 depending on super-specialty).
+
+### 9.3 Seamless Razorpay Online Settlement & Express Token Generation
+1. Select **Pay via Razorpay Payment Gateway** or **Pay at Hospital Reception Desk**.
+2. When Razorpay is selected, the patient can settle via:
+   - **Unified Payments Interface (UPI)**: Google Pay, PhonePe, Paytm, or custom VPA.
+   - **Debit / Credit Cards**: Visa, MasterCard, RuPay with secure 3D-Secure 2.0.
+   - **Net Banking**: HDFC, ICICI, SBI, Axis, Kotak, and 50+ Indian commercial banks.
+3. Once authorized, the payment settles directly into the designated hospital facility's verified bank clearing account.
+4. **Digital Token Generation**:
+   - An immediate high-resolution digital booking token is issued (e.g. `#TK-HOSP01-8421`).
+   - Includes embedded QR code and barcode for express scanning at physical hospital reception kiosks.
+   - Permanent UHID linkage allows seamless retrieval across all future diagnostic reports.
+
+---
+
+## 10. Core Feature: "Labby" Clinical AI Copilot & Patient Educator
+
+### 10.1 Accessing the AI Copilot
+1. The floating **Labby AI Copilot** button is permanently anchored at the bottom-right corner of the interface across all screens.
+2. Click the sparkling stethoscope badge to open the conversational copilot drawer.
+
+### 10.2 Trilingual Healthcare Education (English, Telugu, Hindi)
+- Supports natural conversational queries in **English**, **Telugu (తెలుగు)**, and **Hindi (हिन्दी)**.
+- Example patient questions:
+  - *"నా రక్తంలో గ్లూకోజ్ ఎక్కువ ఉంది, దీని అర్థం ఏమిటి?"* (Telugu: *"My blood glucose is high, what does this mean?"*)
+  - *"What are normal platelet levels for dengue patients?"*
+  - *"उपवास रक्त शर्करा परीक्षण की तैयारी कैसे करें?"* (Hindi: *"How to prepare for a fasting blood sugar test?"*)
+
+### 10.3 Strict Clinical & Safety Guardrails
+- **No Prescriptions**: Never recommends dosages, antibiotics, or pharmaceutical interventions.
+- **Reference Range Clarification**: Clearly explains what standard clinical markers measure in lay language.
+- **Attending Physician Referral**: Prominently directs patients with critical or abnormal values to schedule an appointment with their treating doctor or visit the 24/7 casualty wing.
+
+---
+
+## 11. Edge Cases, Error Handling & FAQ
 
 ### Q1: What happens if a patient enters the wrong OTP 5 times?
 **A:** The OTP gate locks that specific verification challenge for 10 minutes to prevent brute-force attacks. After 3 consecutive locked challenges, the mobile number is throttled for 1 hour, and an incident is logged in `AccessLog`.

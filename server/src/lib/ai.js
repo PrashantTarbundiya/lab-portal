@@ -1,6 +1,6 @@
 /**
  * Labby Clinical AI Diagnostic Engine
- * Queries Google Gemini (primary) and OpenRouter (fallback) AI models.
+ * Queries the user-provided OpenRouter AI Model directly.
  */
 
 import dotenv from 'dotenv';
@@ -19,7 +19,6 @@ const PRIMARY_MODEL = process.env.OPENROUTER_MODEL;
 
 const getActiveModel = () => process.env.OPENROUTER_MODEL || PRIMARY_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
 const getApiKey = () => process.env.OPENROUTER_API_KEY || OPENROUTER_API_KEY || '';
-const getGeminiModel = () => process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
 const CANDIDATE_MODELS = [
   PRIMARY_MODEL,
@@ -36,67 +35,6 @@ function cleanAIOutput(text) {
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/^Here('s| is) a thinking process:[\s\S]*?(?=\n\n(?:[A-Z0-9#\*]|$))/i, '')
     .trim();
-}
-
-/**
- * Query Google Gemini API
- */
-async function queryGemini(systemPrompt, userPrompt) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
-
-  const model = getGeminiModel();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 35000);
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        contents: [
-          { role: 'user', parts: [{ text: userPrompt }] },
-        ],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 800,
-        },
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => '');
-      console.warn(`[Labby AI] Gemini (${model}) returned HTTP ${res.status}: ${errBody.slice(0, 200)}`);
-      return null;
-    }
-
-    const data = await res.json();
-    const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawContent) {
-      console.warn(`[Labby AI] Gemini (${model}) returned empty content.`);
-      return null;
-    }
-
-    const cleaned = cleanAIOutput(rawContent);
-    if (cleaned && cleaned.length > 5) {
-      return { answer: cleaned, model: `gemini/${model}` };
-    }
-
-    return null;
-  } catch (err) {
-    console.warn(`[Labby AI] Gemini request error: ${err.message}`);
-    return null;
-  }
 }
 
 /**
@@ -127,8 +65,6 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': process.env.APP_BASE_URL || 'http://localhost:5173',
-          'X-Title': 'Company A Diagnostics Labby AI',
         },
         body: JSON.stringify({
           model,
@@ -137,8 +73,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
             { role: 'user', content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 800,
-          reasoning: { max_tokens: 0 },
+          max_tokens: 350,
         }),
         signal: controller.signal,
       });
@@ -151,7 +86,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
       }
 
       const data = await res.json();
-      const rawContent = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning;
+      const rawContent = data.choices?.[0]?.message?.content;
       if (!rawContent) {
         console.warn(`[Labby AI] Model ${model} returned empty content, checking next candidate...`);
         continue;
@@ -166,29 +101,6 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
     }
   }
 
-  return null;
-}
-
-/**
- * Query AI with priority cascade: Gemini first, then OpenRouter fallback.
- */
-async function queryAI(systemPrompt, userPrompt) {
-  // 1. Try Google Gemini (primary)
-  const geminiResult = await queryGemini(systemPrompt, userPrompt);
-  if (geminiResult) {
-    console.log(`[Labby AI] Response from ${geminiResult.model}`);
-    return geminiResult;
-  }
-
-  // 2. Fallback to OpenRouter
-  const openRouterResult = await queryOpenRouterModels(systemPrompt, userPrompt);
-  if (openRouterResult) {
-    console.log(`[Labby AI] Response from OpenRouter ${openRouterResult.model}`);
-    return openRouterResult;
-  }
-
-  // 3. All providers exhausted
-  console.warn('[Labby AI] All AI providers failed or unavailable.');
   return null;
 }
 
@@ -221,7 +133,7 @@ ${langInstruction}
 Highlight key values with **bold**, use bullet points, and present table comparisons where appropriate.
 IMPORTANT: Reply directly to the patient. Do NOT output internal reasoning, drafting thoughts, or meta-analysis. Output only your helpful response.`;
 
-  const aiResult = await queryAI(systemPrompt, userPrompt);
+  const aiResult = await queryOpenRouterModels(systemPrompt, userPrompt);
   if (aiResult && aiResult.answer) {
     return {
       success: true,
@@ -328,7 +240,7 @@ ${langInstruction}
 Highlight key terms with **bold**, use bullet points, and present normal ranges in markdown tables when explaining lab tests.
 IMPORTANT: Reply directly to the patient. Do NOT output internal thoughts, reasoning steps, or drafting notes. Output only your response.`;
 
-  const aiResult = await queryAI(systemPrompt, userPrompt);
+  const aiResult = await queryOpenRouterModels(systemPrompt, userPrompt);
   if (aiResult && aiResult.answer) {
     return {
       success: true,

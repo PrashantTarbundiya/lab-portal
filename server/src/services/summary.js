@@ -335,10 +335,9 @@ export function generateFallback(parameter, value, range, lang) {
  * @returns {Promise<Array|null>}
  */
 export async function callAI(items, lang) {
-  const geminiKey = process.env.GEMINI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  if (!geminiKey && !openRouterKey && !anthropicKey) return null;
+  if (!openRouterKey && !anthropicKey) return null;
 
   const langNames = { en: 'English', te: 'Telugu', hi: 'Hindi' };
   const langName = langNames[lang] || 'English';
@@ -359,69 +358,28 @@ ${JSON.stringify(items)}
 
 Respond with a JSON array of objects, each with "parameter" and "text" fields. Nothing else.`;
 
-  // 1. Try Google Gemini if configured
-  if (geminiKey) {
+  const maxRetries = 1;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 800,
-            responseMimeType: 'application/json',
-          },
-        }),
-        signal: controller.signal,
-      });
+      let text = null;
 
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const jsonMatch = text.match(/\[[\s\S]*\]/);
-          if (jsonMatch) return JSON.parse(jsonMatch[0]);
-        }
-      }
-    } catch (err) {
-      console.warn('[Summary AI] Gemini attempt error:', err.message);
-    }
-  }
-
-  // 2. Try OpenRouter
-  if (openRouterKey) {
-    const candidateModels = [
-      process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free',
-      'nvidia/nemotron-3.5-lightning:free',
-    ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
-
-    for (const model of candidateModels) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
+      if (openRouterKey) {
+        const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-super-vl:free';
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${openRouterKey}`,
             'HTTP-Referer': process.env.APP_BASE_URL || 'http://localhost:5173',
-            'X-Title': 'Company A Diagnostics Labby AI',
+            'X-Title': 'Company A Lab Portal',
           },
           body: JSON.stringify({
             model,
             messages: [{ role: 'user', content: prompt }],
             temperature: 0,
-            max_tokens: 800,
-            reasoning: { max_tokens: 0 },
           }),
           signal: controller.signal,
         });
@@ -429,56 +387,50 @@ Respond with a JSON array of objects, each with "parameter" and "text" fields. N
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          console.warn(`[Summary AI] OpenRouter ${model} error:`, response.status);
+          console.error(`OpenRouter API error (attempt ${attempt}):`, response.status);
           continue;
         }
 
         const data = await response.json();
-        const text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning;
-        if (!text) continue;
+        text = data.choices?.[0]?.message?.content;
+      } else {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
+            max_tokens: 2048,
+            temperature: 0,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+          signal: controller.signal,
+        });
 
-        const jsonMatch = text.match(/\[[\s\S]*\]/);
-        if (jsonMatch) return JSON.parse(jsonMatch[0]);
-      } catch (err) {
-        console.warn(`[Summary AI] OpenRouter ${model} error:`, err.message);
-      }
-    }
-  }
+        clearTimeout(timeoutId);
 
-  // 3. Try Anthropic
-  if (anthropicKey) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
-          max_tokens: 2048,
-          temperature: 0,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.content?.[0]?.text;
-        if (text) {
-          const jsonMatch = text.match(/\[[\s\S]*\]/);
-          if (jsonMatch) return JSON.parse(jsonMatch[0]);
+        if (!response.ok) {
+          console.error(`Anthropic API error (attempt ${attempt}):`, response.status);
+          continue;
         }
+
+        const data = await response.json();
+        text = data.content?.[0]?.text;
       }
+
+      if (!text) continue;
+
+      // Extract JSON from response (may have markdown code wrappers)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) continue;
+
+      return JSON.parse(jsonMatch[0]);
     } catch (err) {
-      console.warn('[Summary AI] Anthropic error:', err.message);
+      console.error(`AI call failed (attempt ${attempt}):`, err.message);
+      continue;
     }
   }
 

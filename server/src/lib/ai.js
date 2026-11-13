@@ -65,6 +65,8 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': process.env.APP_BASE_URL || 'http://localhost:5173',
+          'X-Title': 'Company A Diagnostics Labby AI',
         },
         body: JSON.stringify({
           model,
@@ -73,7 +75,8 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
             { role: 'user', content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 350,
+          max_tokens: 800,
+          reasoning: { max_tokens: 0 },
         }),
         signal: controller.signal,
       });
@@ -86,7 +89,7 @@ async function queryOpenRouterModels(systemPrompt, userPrompt) {
       }
 
       const data = await res.json();
-      const rawContent = data.choices?.[0]?.message?.content;
+      const rawContent = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning;
       if (!rawContent) {
         console.warn(`[Labby AI] Model ${model} returned empty content, checking next candidate...`);
         continue;

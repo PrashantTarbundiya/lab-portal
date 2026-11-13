@@ -380,6 +380,8 @@ Respond with a JSON array of objects, each with "parameter" and "text" fields. N
             model,
             messages: [{ role: 'user', content: prompt }],
             temperature: 0,
+            max_tokens: 800,
+            reasoning: { max_tokens: 0 },
           }),
           signal: controller.signal,
         });
@@ -392,7 +394,7 @@ Respond with a JSON array of objects, each with "parameter" and "text" fields. N
         }
 
         const data = await response.json();
-        text = data.choices?.[0]?.message?.content;
+        text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning;
       } else {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
